@@ -42,6 +42,1705 @@
     }
 
     button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+    input, textarea, select { font-family: inherit; outline: none; }
+
+    /* ── Login ─────────────────────────────────────────────────── */
+    #login-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 24px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow);
+      padding: 40px 32px 36px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-wordmark {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: var(--text-sec);
+      font-size: 14px;
+      font-weight: 400;
+      margin-bottom: 36px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      color: var(--text);
+      font-size: 16px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+      min-height: 48px;
+    }
+
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-group textarea { resize: none; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 15px;
+      border-radius: var(--radius-btn);
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      min-height: 52px;
+      margin-top: 24px;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 16px var(--accent-glow); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .error-msg {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      color: var(--danger);
+      font-size: 14px;
+      padding: 10px 14px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* ── App shell ─────────────────────────────────────────────── */
+    #app-view { display: none; flex-direction: column; min-height: 100dvh; }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,12,18,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 60px;
+      flex-shrink: 0;
+    }
+
+    .app-wordmark {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-name { font-size: 13px; color: var(--text-sec); font-weight: 600; }
+
+    .btn-signout {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      transition: color 0.2s, background 0.2s;
+      min-height: 36px;
+    }
+    .btn-signout:hover { color: var(--text); }
+
+    /* ── Admin banner ──────────────────────────────────────────── */
+    .admin-banner {
+      background: rgba(68,143,255,0.1);
+      border-bottom: 1px solid rgba(68,143,255,0.25);
+      padding: 10px 20px;
+      font-size: 13px;
+      color: var(--text-sec);
+      display: none;
+    }
+    .admin-banner a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .admin-banner a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    /* ── Bottom nav ────────────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 150;
+      background: rgba(10,12,18,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 60px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+      padding: 8px 4px;
+    }
+
+    .nav-tab.active { color: var(--accent); }
+    .nav-tab svg { width: 22px; height: 22px; }
+
+    /* ── Tab content ───────────────────────────────────────────── */
+    .tab-content { display: none; flex: 1; flex-direction: column; }
+    .tab-content.active { display: flex; }
+
+    /* ── Month nav ─────────────────────────────────────────────── */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px 20px;
+    }
+
+    .month-nav-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .month-nav-btn:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+    .month-label {
+      font-size: 18px;
+      font-weight: 700;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    /* ── Calendar ──────────────────────────────────────────────── */
+    .calendar-wrap {
+      padding: 0 16px 100px;
+      flex: 1;
+    }
+
+    .dow-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .dow-header span {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      background: var(--surface);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px 6px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .day-cell:active { transform: scale(0.95); }
+
+    .day-cell.other-month { background: transparent; opacity: 0.3; }
+
+    .day-cell.today .day-num {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .day-cell.selected {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+      box-shadow: 0 0 0 1px var(--accent-glow);
+    }
+
+    .day-num {
+      font-size: 14px;
+      font-weight: 600;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .day-dots {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 3px;
+      margin-top: 4px;
+      max-width: 44px;
+    }
+
+    .day-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .day-deadline {
+      font-size: 9px;
+      margin-top: 2px;
+      color: var(--warning);
+    }
+
+    /* ── FAB bar ───────────────────────────────────────────────── */
+    .fab-bar {
+      position: fixed;
+      bottom: calc(70px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      z-index: 200;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .fab-bar.visible { transform: translateX(-50%) translateY(0); }
+
+    .fab-btn {
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 16px 32px;
+      border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(68,143,255,0.45);
+      white-space: nowrap;
+      min-height: 52px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+
+    .fab-btn:hover { background: var(--accent-hover); }
+    .fab-btn:active { transform: scale(0.96); }
+
+    /* ── Sheets ────────────────────────────────────────────────── */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .sheet-overlay.open { opacity: 1; pointer-events: all; }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 301;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      padding: 0 0 calc(24px + env(safe-area-inset-bottom));
+      max-height: 92dvh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+    }
+
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .sheet-drag-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 12px auto 0;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sheet-title { font-size: 17px; font-weight: 700; }
+
+    .sheet-close {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      line-height: 1;
+    }
+    .sheet-close:hover { background: var(--border); color: var(--text); }
+
+    .sheet-body { padding: 20px 20px 8px; }
+
+    /* ── Client grid ───────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .client-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .client-pill {
+      background: var(--surface-hover);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      min-height: 52px;
+    }
+    .client-pill:hover { border-color: var(--accent); }
+    .client-pill.active { border-color: var(--accent); background: rgba(68,143,255,0.12); }
+
+    .client-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .client-info { flex: 1; min-width: 0; }
+
+    .client-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .client-code { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+
+    /* ── Hours picker ──────────────────────────────────────────── */
+    .hours-picker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+      background: var(--surface-hover);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .hours-btn {
+      background: transparent;
+      color: var(--text);
+      font-size: 28px;
+      font-weight: 300;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .hours-btn:hover { background: var(--border); color: var(--accent); }
+    .hours-btn:active { background: rgba(68,143,255,0.15); }
+
+    .hours-display { flex: 1; text-align: center; }
+    .hours-value { font-size: 36px; font-weight: 700; color: var(--text); display: block; line-height: 1; }
+    .hours-unit { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ── Notes ─────────────────────────────────────────────────── */
+    .notes-input {
+      width: 100%;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 15px;
+      padding: 14px 16px;
+      resize: none;
+      height: 68px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .notes-input::placeholder { color: var(--text-muted); }
+    .notes-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px;
+      border-radius: var(--radius-btn);
+      min-height: 56px;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+    .btn-submit:hover { background: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Entry card ────────────────────────────────────────────── */
+    .entry-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .entry-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .entry-info { flex: 1; }
+    .entry-client { font-size: 15px; font-weight: 600; }
+    .entry-meta { font-size: 13px; color: var(--text-sec); margin-top: 2px; }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 18px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-delete:hover { background: rgba(239,68,68,0.12); color: var(--danger); }
+
+    .btn-add-entry {
+      width: 100%;
+      background: var(--surface-hover);
+      border: 1px dashed var(--border);
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 15px;
+      border-radius: 12px;
+      min-height: 52px;
+      margin-top: 8px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-add-entry:hover { background: var(--border); border-color: var(--accent); }
+
+    /* ── Tab content headers ───────────────────────────────────── */
+    .tab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 20px 12px;
+    }
+
+    .tab-title { font-size: 22px; font-weight: 700; }
+
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 16px;
+      border-radius: var(--radius-btn);
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .btn-add:hover { background: var(--accent-hover); }
+
+    /* ── Expense cards ─────────────────────────────────────────── */
+    .expense-list, .pto-list {
+      padding: 0 16px 100px;
+      flex: 1;
+    }
+
+    .expense-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .expense-main { flex: 1; min-width: 0; }
+
+    .expense-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .expense-date { font-size: 13px; color: var(--text-sec); }
+    .expense-desc { font-size: 14px; font-weight: 600; margin-top: 2px; }
+    .expense-amount { font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .badge-travel        { background: rgba(68,143,255,0.18); color: #6aabff; }
+    .badge-accommodation { background: rgba(147,51,234,0.18); color: #c084fc; }
+    .badge-equipment     { background: rgba(249,115,22,0.18); color: #fb923c; }
+    .badge-food          { background: rgba(34,197,94,0.18);  color: #4ade80; }
+    .badge-other         { background: rgba(100,116,139,0.18);color: #94a3b8; }
+    .badge-pending       { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    .badge-approved      { background: rgba(34,197,94,0.18);  color: #4ade80; }
+    .badge-rejected      { background: rgba(239,68,68,0.18);  color: #f87171; }
+    .badge-vacation      { background: rgba(68,143,255,0.18); color: #6aabff; }
+    .badge-sick          { background: rgba(239,68,68,0.18);  color: #f87171; }
+    .badge-personal      { background: rgba(245,158,11,0.18); color: #fbbf24; }
+
+    /* ── PTO cards ─────────────────────────────────────────────── */
+    .pto-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .pto-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .pto-dates { font-size: 14px; font-weight: 600; }
+    .pto-notes { font-size: 13px; color: var(--text-sec); margin-top: 4px; }
+    .pto-badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+    .pto-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* ── Category pill selector ────────────────────────────────── */
+    .pill-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .pill-option {
+      background: var(--surface-hover);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .pill-option:hover { border-color: var(--accent); color: var(--text); }
+    .pill-option.active { border-color: var(--accent); background: rgba(68,143,255,0.12); color: var(--text); }
+
+    /* ── Amount input ──────────────────────────────────────────── */
+    .amount-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .amount-prefix {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-sec);
+      pointer-events: none;
+    }
+    .amount-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 14px 16px 14px 32px;
+      min-height: 48px;
+      transition: border-color 0.2s;
+    }
+    .amount-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    /* ── Empty state ───────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-sec);
+    }
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Toast ─────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: calc(80px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      z-index: 9999;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--success); color: var(--success); }
+    #toast.error   { border-color: var(--danger);  color: var(--danger); }
+
+    body.sheet-open { overflow: hidden; }
+
+    @media (min-width: 600px) {
+      .login-card { padding: 48px 40px 44px; }
+      .day-cell { min-height: 72px; }
+      .calendar-wrap { padding: 0 24px 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="login-view">
+    <div class="login-card">
+      <div class="login-wordmark">ENVERSED</div>
+      <div class="login-subtitle">Hours Tracker</div>
+      <form id="login-form" autocomplete="on">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" placeholder="you@enversed.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn-primary" id="login-btn">Sign in</button>
+        <div class="error-msg" id="login-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP VIEW -->
+  <div id="app-view">
+    <header class="app-header">
+      <div class="app-wordmark">ENVERSED</div>
+      <div class="header-right">
+        <span class="user-name" id="user-name-display"></span>
+        <button class="btn-signout" id="signout-btn">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Admin banner (only for admins) -->
+    <div class="admin-banner" id="admin-banner">
+      🔑 You have admin access. <a href="/admin.html">→ Open Admin Dashboard</a>
+    </div>
+
+    <!-- Tab: Calendar -->
+    <div class="tab-content" id="tab-calendar">
+      <div class="month-nav">
+        <button class="month-nav-btn" id="prev-month">&#8249;</button>
+        <div class="month-label" id="month-label"></div>
+        <button class="month-nav-btn" id="next-month">&#8250;</button>
+      </div>
+      <div class="calendar-wrap">
+        <div class="dow-header">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Expenses -->
+    <div class="tab-content" id="tab-expenses">
+      <div class="tab-header">
+        <div class="tab-title">My Expenses</div>
+        <button class="btn-add" id="exp-add-btn">+ Add Expense</button>
+      </div>
+      <div class="month-nav">
+        <button class="month-nav-btn" id="exp-prev-month">&#8249;</button>
+        <div class="month-label" id="exp-month-label"></div>
+        <button class="month-nav-btn" id="exp-next-month">&#8250;</button>
+      </div>
+      <div class="expense-list" id="expense-list"></div>
+    </div>
+
+    <!-- Tab: Time Off -->
+    <div class="tab-content" id="tab-pto">
+      <div class="tab-header">
+        <div class="tab-title">Time Off</div>
+        <button class="btn-add" id="pto-add-btn">+ Request Time Off</button>
+      </div>
+      <div class="pto-list" id="pto-list"></div>
+    </div>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" data-tab="calendar" id="nav-calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        Calendar
+      </button>
+      <button class="nav-tab" data-tab="expenses" id="nav-expenses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Expenses
+      </button>
+      <button class="nav-tab" data-tab="pto" id="nav-pto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/>
+        </svg>
+        Time Off
+      </button>
+    </nav>
+  </div>
+
+  <!-- FAB bar -->
+  <div class="fab-bar" id="fab-bar">
+    <button class="fab-btn" id="fab-btn"></button>
+  </div>
+
+  <!-- Sheet overlay -->
+  <div class="sheet-overlay" id="sheet-overlay"></div>
+
+  <!-- Log Hours Sheet -->
+  <div class="bottom-sheet" id="log-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="log-sheet-title">Log Hours</div>
+      <button class="sheet-close" id="log-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="section-label">Client</div>
+      <div class="client-grid" id="client-grid"></div>
+      <div class="section-label">Hours</div>
+      <div class="hours-picker">
+        <button class="hours-btn" id="hours-dec">&#8722;</button>
+        <div class="hours-display">
+          <span class="hours-value" id="hours-value">8</span>
+          <span class="hours-unit">hours</span>
+        </div>
+        <button class="hours-btn" id="hours-inc">&#43;</button>
+      </div>
+      <div class="section-label">Notes (optional)</div>
+      <textarea class="notes-input" id="notes-input" placeholder="Add a note (optional)" rows="2"></textarea>
+      <button class="btn-submit" id="log-submit-btn">Log 8 hours</button>
+    </div>
+  </div>
+
+  <!-- Day Detail Sheet -->
+  <div class="bottom-sheet" id="detail-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="detail-sheet-title"></div>
+      <button class="sheet-close" id="detail-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div id="detail-entries-list"></div>
+      <button class="btn-add-entry" id="detail-add-btn">+ Add another entry</button>
+    </div>
+  </div>
+
+  <!-- Add Expense Sheet -->
+  <div class="bottom-sheet" id="expense-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Add Expense</div>
+      <button class="sheet-close" id="expense-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="section-label">Category</div>
+      <div class="pill-selector" id="exp-category-selector">
+        <button class="pill-option" data-value="Travel">✈️ Travel</button>
+        <button class="pill-option" data-value="Accommodation">🏨 Accommodation</button>
+        <button class="pill-option" data-value="Equipment">🖥 Equipment</button>
+        <button class="pill-option" data-value="Food">🍽 Food</button>
+        <button class="pill-option" data-value="Other">📦 Other</button>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="exp-date-input">
+      </div>
+      <div class="form-group">
+        <label>Amount (€)</label>
+        <div class="amount-wrap">
+          <span class="amount-prefix">€</span>
+          <input type="number" class="amount-input" id="exp-amount-input" step="0.01" min="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="exp-desc-input" placeholder="What was this expense for?">
+      </div>
+      <button class="btn-submit" id="exp-submit-btn">Add Expense</button>
+    </div>
+  </div>
+
+  <!-- Request PTO Sheet -->
+  <div class="bottom-sheet" id="pto-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Request Time Off</div>
+      <button class="sheet-close" id="pto-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="section-label">Type</div>
+      <div class="pill-selector" id="pto-type-selector">
+        <button class="pill-option" data-value="Vacation">🌴 Vacation</button>
+        <button class="pill-option" data-value="Sick">🤒 Sick</button>
+        <button class="pill-option" data-value="Personal">🧘 Personal</button>
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" id="pto-start-input">
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" id="pto-end-input">
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <textarea id="pto-notes-input" rows="3" placeholder="Any additional context..."></textarea>
+      </div>
+      <button class="btn-submit" id="pto-submit-btn">Submit Request</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let auth = null;
+    let clients = [];
+    let entries = [];
+    let currentDate = new Date();
+    let viewYear = currentDate.getFullYear();
+    let viewMonth = currentDate.getMonth();
+    let selectedDays = new Set();
+    let logHours = 8;
+    let logClientId = null;
+    let detailDate = null;
+    let activeTab = 'calendar';
+
+    let expViewYear = currentDate.getFullYear();
+    let expViewMonth = currentDate.getMonth();
+    let myExpenses = [];
+    let expCategorySelected = null;
+
+    let ptoList = [];
+    let ptoTypeSelected = null;
+
+    // ── DOM refs ──────────────────────────────────────────────────────────────
+    const loginView     = document.getElementById('login-view');
+    const appView       = document.getElementById('app-view');
+    const loginForm     = document.getElementById('login-form');
+    const loginError    = document.getElementById('login-error');
+    const loginBtn      = document.getElementById('login-btn');
+    const userNameDisp  = document.getElementById('user-name-display');
+    const signoutBtn    = document.getElementById('signout-btn');
+    const adminBanner   = document.getElementById('admin-banner');
+    const prevMonthBtn  = document.getElementById('prev-month');
+    const nextMonthBtn  = document.getElementById('next-month');
+    const monthLabel    = document.getElementById('month-label');
+    const calGrid       = document.getElementById('calendar-grid');
+    const fabBar        = document.getElementById('fab-bar');
+    const fabBtn        = document.getElementById('fab-btn');
+    const overlay       = document.getElementById('sheet-overlay');
+    const logSheet      = document.getElementById('log-sheet');
+    const logSheetTitle = document.getElementById('log-sheet-title');
+    const logSheetClose = document.getElementById('log-sheet-close');
+    const clientGrid    = document.getElementById('client-grid');
+    const hoursValue    = document.getElementById('hours-value');
+    const hoursDec      = document.getElementById('hours-dec');
+    const hoursInc      = document.getElementById('hours-inc');
+    const notesInput    = document.getElementById('notes-input');
+    const logSubmitBtn  = document.getElementById('log-submit-btn');
+    const detailSheet   = document.getElementById('detail-sheet');
+    const detailTitle   = document.getElementById('detail-sheet-title');
+    const detailClose   = document.getElementById('detail-sheet-close');
+    const detailList    = document.getElementById('detail-entries-list');
+    const detailAddBtn  = document.getElementById('detail-add-btn');
+    const toast         = document.getElementById('toast');
+
+    // Expense refs
+    const expAddBtn     = document.getElementById('exp-add-btn');
+    const expPrevMonth  = document.getElementById('exp-prev-month');
+    const expNextMonth  = document.getElementById('exp-next-month');
+    const expMonthLabel = document.getElementById('exp-month-label');
+    const expenseList   = document.getElementById('expense-list');
+    const expenseSheet  = document.getElementById('expense-sheet');
+    const expSheetClose = document.getElementById('expense-sheet-close');
+    const expDateInput  = document.getElementById('exp-date-input');
+    const expAmountInput= document.getElementById('exp-amount-input');
+    const expDescInput  = document.getElementById('exp-desc-input');
+    const expSubmitBtn  = document.getElementById('exp-submit-btn');
+    const expCatSelector= document.getElementById('exp-category-selector');
+
+    // PTO refs
+    const ptoAddBtn     = document.getElementById('pto-add-btn');
+    const ptoListEl     = document.getElementById('pto-list');
+    const ptoSheet      = document.getElementById('pto-sheet');
+    const ptoSheetClose = document.getElementById('pto-sheet-close');
+    const ptoStartInput = document.getElementById('pto-start-input');
+    const ptoEndInput   = document.getElementById('pto-end-input');
+    const ptoNotesInput = document.getElementById('pto-notes-input');
+    const ptoSubmitBtn  = document.getElementById('pto-submit-btn');
+    const ptoTypeSel    = document.getElementById('pto-type-selector');
+
+    // ── Utils ─────────────────────────────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function dateToStr(y, m, d) { return `${y}-${pad(m+1)}-${pad(d)}`; }
+    function monthStr() { return `${viewYear}-${pad(viewMonth+1)}`; }
+    function expMonthStr() { return `${expViewYear}-${pad(expViewMonth+1)}`; }
+
+    function formatMonthLabel(y, m) {
+      return new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
+
+    function formatDateLabel(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    function formatDateShort(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+    }
+
+    function todayStr() {
+      const t = new Date();
+      return dateToStr(t.getFullYear(), t.getMonth(), t.getDate());
+    }
+
+    function daysBetween(a, b) {
+      const da = new Date(a), db = new Date(b);
+      return Math.round((db - da) / 86400000) + 1;
+    }
+
+    async function apiFetch(path, options = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+      if (auth) headers['Authorization'] = `Bearer ${auth.token}`;
+      const res = await fetch(path, { ...options, headers });
+      if (res.status === 401) { signOut(); return null; }
+      return res;
+    }
+
+    function showToast(msg, type = 'success') {
+      toast.textContent = msg;
+      toast.className = `show ${type}`;
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.className = ''; }, 2500);
+    }
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    function loadAuth() {
+      try {
+        const raw = localStorage.getItem('enversed_auth');
+        if (raw) auth = JSON.parse(raw);
+      } catch { auth = null; }
+    }
+
+    function saveAuth(data) {
+      auth = data;
+      localStorage.setItem('enversed_auth', JSON.stringify(data));
+    }
+
+    function signOut() {
+      auth = null;
+      localStorage.removeItem('enversed_auth');
+      showLogin();
+    }
+
+    function showLogin() {
+      loginView.style.display = 'flex';
+      appView.style.display = 'none';
+    }
+
+    function showApp() {
+      loginView.style.display = 'none';
+      appView.style.display = 'flex';
+      userNameDisp.textContent = auth.user.name.split(' ')[0];
+      if (auth.user.role === 'admin') adminBanner.style.display = 'block';
+      switchTab('calendar');
+      loadMonthData();
+    }
+
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      loginError.style.display = 'none';
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in…';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('login-email').value.trim(),
+            password: document.getElementById('login-password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          loginError.textContent = data.error || 'Login failed';
+          loginError.style.display = 'block';
+        } else {
+          saveAuth(data);
+          showApp();
+        }
+      } catch {
+        loginError.textContent = 'Network error. Please try again.';
+        loginError.style.display = 'block';
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    };
+
+    signoutBtn.addEventListener('click', signOut);
+
+    // ── Tab navigation ────────────────────────────────────────────────────────
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      document.getElementById(`nav-${tab}`).classList.add('active');
+      if (tab === 'calendar') fabBar.classList.toggle('visible', selectedDays.size > 0);
+      else fabBar.classList.remove('visible');
+
+      if (tab === 'expenses') loadExpenses();
+      if (tab === 'pto') loadPto();
+    }
+
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // ── Calendar month navigation ─────────────────────────────────────────────
+    prevMonthBtn.onclick = () => { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } selectedDays.clear(); loadMonthData(); };
+    nextMonthBtn.onclick = () => { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } selectedDays.clear(); loadMonthData(); };
+
+    // ── Data loading ──────────────────────────────────────────────────────────
+    async function loadMonthData() {
+      monthLabel.textContent = formatMonthLabel(viewYear, viewMonth);
+      updateFab();
+      if (clients.length === 0) {
+        const res = await apiFetch('/api/clients');
+        if (res && res.ok) clients = await res.json();
+      }
+      const res = await apiFetch(`/api/entries?month=${monthStr()}`);
+      if (res && res.ok) entries = await res.json();
+      else entries = [];
+      renderCalendar();
+    }
+
+    // ── Calendar rendering ────────────────────────────────────────────────────
+    function renderCalendar() {
+      calGrid.innerHTML = '';
+      const firstDay = new Date(viewYear, viewMonth, 1);
+      let startDow = (firstDay.getDay() + 6) % 7;
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+      const entryMap = {};
+      for (const e of entries) {
+        if (!entryMap[e.date]) entryMap[e.date] = [];
+        entryMap[e.date].push(e.client_color);
+      }
+
+      // Build deadline map for this month
+      const deadlineMap = {};
+      for (const c of clients) {
+        if (c.deadline && c.deadline.startsWith(monthStr())) {
+          const day = c.deadline.slice(8, 10).replace(/^0/, '');
+          if (!deadlineMap[c.deadline]) deadlineMap[c.deadline] = [];
+          deadlineMap[c.deadline].push(c.name);
+        }
+      }
+
+      const today = todayStr();
+
+      for (let i = 0; i < startDow; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell other-month';
+        cell.innerHTML = `<span class="day-num">${prevDays - startDow + 1 + i}</span>`;
+        calGrid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const ds = dateToStr(viewYear, viewMonth, d);
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        if (ds === today) cell.classList.add('today');
+        if (selectedDays.has(ds)) cell.classList.add('selected');
+
+        let dotsHtml = '';
+        if (entryMap[ds]) {
+          dotsHtml = '<div class="day-dots">' +
+            entryMap[ds].slice(0, 6).map(c => `<div class="day-dot" style="background:${c}"></div>`).join('') +
+            '</div>';
+        }
+
+        let deadlineHtml = '';
+        if (deadlineMap[ds]) {
+          deadlineHtml = `<div class="day-deadline" title="${deadlineMap[ds].join(', ')}">◆</div>`;
+        }
+
+        cell.innerHTML = `<span class="day-num">${d}</span>${dotsHtml}${deadlineHtml}`;
+        cell.addEventListener('click', () => onDayTap(ds));
+        calGrid.appendChild(cell);
+      }
+
+      const total = startDow + daysInMonth;
+      const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (let i = 1; i <= remaining; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell other-month';
+        cell.innerHTML = `<span class="day-num">${i}</span>`;
+        calGrid.appendChild(cell);
+      }
+    }
+
+    function onDayTap(ds) {
+      const hasEntries = entries.some(e => e.date === ds);
+      if (!selectedDays.has(ds) && hasEntries && selectedDays.size === 0) {
+        openDetailSheet(ds);
+        return;
+      }
+      if (selectedDays.has(ds)) selectedDays.delete(ds);
+      else selectedDays.add(ds);
+
+      document.querySelectorAll('#calendar-grid .day-cell:not(.other-month)').forEach(cell => {
+        const num = parseInt(cell.querySelector('.day-num').textContent);
+        const cellDs = dateToStr(viewYear, viewMonth, num);
+        cell.classList.toggle('selected', selectedDays.has(cellDs));
+      });
+      updateFab();
+    }
+
+    function updateFab() {
+      const count = selectedDays.size;
+      if (count === 0 || activeTab !== 'calendar') {
+        fabBar.classList.remove('visible');
+      } else {
+        fabBar.classList.add('visible');
+        fabBtn.textContent = count === 1
+          ? `Log hours — ${formatDateLabel([...selectedDays][0])}`
+          : `Log hours — ${count} days`;
+      }
+    }
+
+    fabBtn.addEventListener('click', () => openLogSheet([...selectedDays]));
+
+    // ── Log Sheet ─────────────────────────────────────────────────────────────
+    function openLogSheet(dates) {
+      logClientId = null;
+      logHours = 8;
+      notesInput.value = '';
+      hoursValue.textContent = logHours;
+      updateSubmitBtn();
+      logSheetTitle.textContent = dates.length === 1
+        ? `Log Hours — ${formatDateLabel(dates[0])}`
+        : `Log Hours — ${dates.length} days`;
+
+      clientGrid.innerHTML = '';
+      for (const c of clients) {
+        const pill = document.createElement('button');
+        pill.className = 'client-pill';
+        pill.dataset.id = c.id;
+        pill.innerHTML = `
+          <div class="client-dot" style="background:${c.color}"></div>
+          <div class="client-info">
+            <div class="client-name">${c.name}</div>
+            <div class="client-code">${c.code}</div>
+          </div>
+        `;
+        pill.addEventListener('click', () => {
+          logClientId = c.id;
+          document.querySelectorAll('.client-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          updateSubmitBtn();
+        });
+        clientGrid.appendChild(pill);
+      }
+      openSheet(logSheet, dates);
+    }
+
+    function updateSubmitBtn() {
+      logSubmitBtn.textContent = `Log ${logHours} hour${logHours !== 1 ? 's' : ''}`;
+      logSubmitBtn.disabled = !logClientId;
+    }
+
+    hoursDec.addEventListener('click', () => {
+      if (logHours > 0.5) { logHours = Math.round((logHours - 0.5) * 10) / 10; hoursValue.textContent = logHours; updateSubmitBtn(); }
+    });
+    hoursInc.addEventListener('click', () => {
+      if (logHours < 8) { logHours = Math.round((logHours + 0.5) * 10) / 10; hoursValue.textContent = logHours; updateSubmitBtn(); }
+    });
+
+    logSubmitBtn.addEventListener('click', async () => {
+      const dates = logSheet._dates;
+      if (!logClientId || !dates) return;
+      logSubmitBtn.disabled = true;
+      logSubmitBtn.textContent = 'Saving…';
+      const res = await apiFetch('/api/entries', {
+        method: 'POST',
+        body: JSON.stringify({ client_id: logClientId, dates, hours: logHours, notes: notesInput.value.trim() }),
+      });
+      if (res && res.ok) {
+        closeSheet(logSheet);
+        selectedDays.clear();
+        updateFab();
+        showToast(`Logged ${logHours}h for ${dates.length} day${dates.length > 1 ? 's' : ''}`, 'success');
+        await loadMonthData();
+      } else {
+        const err = res ? await res.json() : { error: 'Network error' };
+        showToast(err.error || 'Failed to save', 'error');
+        logSubmitBtn.disabled = false;
+        updateSubmitBtn();
+      }
+    });
+
+    logSheetClose.addEventListener('click', () => closeSheet(logSheet));
+
+    // ── Detail Sheet ──────────────────────────────────────────────────────────
+    function openDetailSheet(ds) {
+      detailDate = ds;
+      detailTitle.textContent = formatDateLabel(ds);
+      renderDetailEntries(ds);
+      openSheet(detailSheet, null);
+    }
+
+    function renderDetailEntries(ds) {
+      const dayEntries = entries.filter(e => e.date === ds);
+      detailList.innerHTML = '';
+      for (const e of dayEntries) {
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+        card.innerHTML = `
+          <div class="entry-dot" style="background:${e.client_color}"></div>
+          <div class="entry-info">
+            <div class="entry-client">${e.client_name}</div>
+            <div class="entry-meta">${e.hours}h${e.notes ? ' · ' + e.notes : ''}</div>
+          </div>
+          <button class="btn-delete" aria-label="Delete entry">🗑</button>
+        `;
+        card.querySelector('.btn-delete').addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          if (!confirm(`Delete ${e.hours}h for ${e.client_name}?`)) return;
+          const res = await apiFetch(`/api/entries/${e.id}`, { method: 'DELETE' });
+          if (res && res.status === 204) {
+            showToast('Entry deleted', 'success');
+            await loadMonthData();
+            if (!entries.some(en => en.date === ds)) closeSheet(detailSheet);
+            else renderDetailEntries(ds);
+          } else {
+            showToast('Failed to delete', 'error');
+          }
+        });
+        detailList.appendChild(card);
+      }
+    }
+
+    detailAddBtn.addEventListener('click', () => {
+      closeSheet(detailSheet);
+      setTimeout(() => openLogSheet([detailDate]), 350);
+    });
+    detailClose.addEventListener('click', () => closeSheet(detailSheet));
+
+    // ── Sheet helpers ─────────────────────────────────────────────────────────
+    function openSheet(sheet, dates) {
+      if (sheet === logSheet) sheet._dates = dates;
+      overlay.classList.add('open');
+      sheet.classList.add('open');
+      document.body.classList.add('sheet-open');
+    }
+
+    function closeSheet(sheet) {
+      sheet.classList.remove('open');
+      // Only remove overlay if no other sheet is open
+      const anyOpen = document.querySelectorAll('.bottom-sheet.open').length > 0;
+      if (!anyOpen) {
+        overlay.classList.remove('open');
+        document.body.classList.remove('sheet-open');
+      }
+    }
+
+    overlay.addEventListener('click', () => {
+      document.querySelectorAll('.bottom-sheet.open').forEach(s => s.classList.remove('open'));
+      overlay.classList.remove('open');
+      document.body.classList.remove('sheet-open');
+    });
+
+    // ── Expenses ──────────────────────────────────────────────────────────────
+    function categoryBadgeClass(cat) {
+      const map = { Travel: 'badge-travel', Accommodation: 'badge-accommodation', Equipment: 'badge-equipment', Food: 'badge-food', Other: 'badge-other' };
+      return map[cat] || 'badge-other';
+    }
+
+    function statusBadgeClass(s) {
+      return `badge-${s.toLowerCase()}`;
+    }
+
+    async function loadExpenses() {
+      expMonthLabel.textContent = formatMonthLabel(expViewYear, expViewMonth);
+      const res = await apiFetch(`/api/expenses?month=${expMonthStr()}`);
+      if (res && res.ok) myExpenses = await res.json();
+      else myExpenses = [];
+      renderExpenses();
+    }
+
+    function renderExpenses() {
+      if (myExpenses.length === 0) {
+        expenseList.innerHTML = '<div class="empty-state"><div class="empty-icon">🧾</div><p>No expenses this month</p></div>';
+        return;
+      }
+      expenseList.innerHTML = '';
+      for (const e of myExpenses) {
+        const card = document.createElement('div');
+        card.className = 'expense-card';
+        card.innerHTML = `
+          <div class="expense-main">
+            <div class="expense-top">
+              <span class="expense-date">${formatDateShort(e.date)}</span>
+              <span class="badge ${categoryBadgeClass(e.category)}">${e.category}</span>
+              <span class="badge ${statusBadgeClass(e.status)}">${e.status}</span>
+            </div>
+            <div class="expense-desc">${e.description}</div>
+          </div>
+          <div class="expense-amount">€ ${e.amount.toFixed(2)}</div>
+          ${e.status === 'pending' ? `<button class="btn-delete" data-id="${e.id}" aria-label="Delete">🗑</button>` : ''}
+        `;
+        if (e.status === 'pending') {
+          card.querySelector('.btn-delete').addEventListener('click', async () => {
+            if (!confirm('Delete this expense?')) return;
+            const res = await apiFetch(`/api/expenses/${e.id}`, { method: 'DELETE' });
+            if (res && res.status === 204) { showToast('Expense deleted'); await loadExpenses(); }
+            else showToast('Failed', 'error');
+          });
+        }
+        expenseList.appendChild(card);
+      }
+    }
+
+    expPrevMonth.onclick = () => { expViewMonth--; if (expViewMonth < 0) { expViewMonth = 11; expViewYear--; } loadExpenses(); };
+    expNextMonth.onclick = () => { expViewMonth++; if (expViewMonth > 11) { expViewMonth = 0; expViewYear++; } loadExpenses(); };
+
+    expAddBtn.addEventListener('click', () => {
+      expCategorySelected = null;
+      expAmountInput.value = '';
+      expDescInput.value = '';
+      expDateInput.value = todayStr();
+      expCatSelector.querySelectorAll('.pill-option').forEach(p => p.classList.remove('active'));
+      openSheet(expenseSheet, null);
+    });
+    expSheetClose.addEventListener('click', () => closeSheet(expenseSheet));
+
+    expCatSelector.querySelectorAll('.pill-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        expCategorySelected = btn.dataset.value;
+        expCatSelector.querySelectorAll('.pill-option').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    expSubmitBtn.addEventListener('click', async () => {
+      if (!expCategorySelected) { showToast('Select a category', 'error'); return; }
+      const amount = parseFloat(expAmountInput.value);
+      if (!amount || amount <= 0) { showToast('Enter valid amount', 'error'); return; }
+      const description = expDescInput.value.trim();
+      if (!description) { showToast('Enter description', 'error'); return; }
+      const date = expDateInput.value;
+      if (!date) { showToast('Select a date', 'error'); return; }
+
+      expSubmitBtn.disabled = true;
+      expSubmitBtn.textContent = 'Saving…';
+      const res = await apiFetch('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify({ date, amount, category: expCategorySelected, description }),
+      });
+      if (res && res.ok) {
+        closeSheet(expenseSheet);
+        showToast('Expense added');
+        // Switch view month to match the expense date
+        const [ey, em] = date.split('-').map(Number);
+        expViewYear = ey; expViewMonth = em - 1;
+        await loadExpenses();
+      } else {
+        const err = res ? await res.json() : { error: 'Network error' };
+        showToast(err.error || 'Failed', 'error');
+      }
+      expSubmitBtn.disabled = false;
+      expSubmitBtn.textContent = 'Add Expense';
+    });
+
+    // ── PTO ───────────────────────────────────────────────────────────────────
+    async function loadPto() {
+      const res = await apiFetch('/api/pto');
+      if (res && res.ok) ptoList = await res.json();
+      else ptoList = [];
+      renderPto();
+    }
+
+    function renderPto() {
+      if (ptoList.length === 0) {
+        ptoListEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🌴</div><p>No time off requests yet</p></div>';
+        return;
+      }
+      ptoListEl.innerHTML = '';
+      for (const p of ptoList) {
+        const days = daysBetween(p.start_date, p.end_date);
+        const dateRange = p.start_date === p.end_date
+          ? formatDateShort(p.start_date)
+          : `${formatDateShort(p.start_date)} – ${formatDateShort(p.end_date)}`;
+        const card = document.createElement('div');
+        card.className = 'pto-card';
+        const statusIcon = p.status === 'approved' ? '✓' : p.status === 'rejected' ? '✗' : '⏳';
+        card.innerHTML = `
+          <div class="pto-top">
+            <div class="pto-dates">${dateRange} · ${days} day${days > 1 ? 's' : ''}</div>
+            <div class="pto-actions">
+              ${p.status === 'pending' ? `<button class="btn-delete" data-id="${p.id}" aria-label="Delete">🗑</button>` : ''}
+            </div>
+          </div>
+          <div class="pto-badges">
+            <span class="badge badge-${p.type.toLowerCase()}">${p.type}</span>
+            <span class="badge ${statusBadgeClass(p.status)}">${statusIcon} ${p.status}</span>
+          </div>
+          ${p.notes ? `<div class="pto-notes">${p.notes}</div>` : ''}
+        `;
+        if (p.status === 'pending') {
+          card.querySelector('.btn-delete').addEventListener('click', async () => {
+            if (!confirm('Cancel this request?')) return;
+            const res = await apiFetch(`/api/pto/${p.id}`, { method: 'DELETE' });
+            if (res && res.status === 204) { showToast('Request cancelled'); await loadPto(); }
+            else showToast('Failed', 'error');
+          });
+        }
+        ptoListEl.appendChild(card);
+      }
+    }
+
+    ptoAddBtn.addEventListener('click', () => {
+      ptoTypeSelected = null;
+      ptoStartInput.value = todayStr();
+      ptoEndInput.value = todayStr();
+      ptoNotesInput.value = '';
+      ptoTypeSel.querySelectorAll('.pill-option').forEach(p => p.classList.remove('active'));
+      openSheet(ptoSheet, null);
+    });
+    ptoSheetClose.addEventListener('click', () => closeSheet(ptoSheet));
+
+    ptoTypeSel.querySelectorAll('.pill-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ptoTypeSelected = btn.dataset.value;
+        ptoTypeSel.querySelectorAll('.pill-option').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    ptoSubmitBtn.addEventListener('click', async () => {
+      if (!ptoTypeSelected) { showToast('Select a type', 'error'); return; }
+      const start_date = ptoStartInput.value;
+      const end_date = ptoEndInput.value;
+      if (!start_date || !end_date) { showToast('Select dates', 'error'); return; }
+      if (start_date > end_date) { showToast('End date must be after start date', 'error'); return; }
+
+      ptoSubmitBtn.disabled = true;
+      ptoSubmitBtn.textContent = 'Submitting…';
+      const res = await apiFetch('/api/pto', {
+        method: 'POST',
+        body: JSON.stringify({ start_date, end_date, type: ptoTypeSelected, notes: ptoNotesInput.value.trim() }),
+      });
+      if (res && res.ok) {
+        closeSheet(ptoSheet);
+        showToast('Request submitted');
+        await loadPto();
+      } else {
+        const err = res ? await res.json() : { error: 'Network error' };
+        showToast(err.error || 'Failed', 'error');
+      }
+      ptoSubmitBtn.disabled = false;
+      ptoSubmitBtn.textContent = 'Submit Request';
+    });
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    loadAuth();
+    if (auth && auth.token) showApp();
+    else showLogin();
+
+  })();
+  </script>
+</body>
+</html>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0c12">
+  <title>Enversed Hours Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c12;
+      --surface: #13161f;
+      --surface-hover: #1a1f2e;
+      --border: #1e2535;
+      --accent: #448fff;
+      --accent-hover: #6aabff;
+      --accent-glow: rgba(68,143,255,0.25);
+      --text: #ffffff;
+      --text-sec: #8892a4;
+      --text-muted: #4a5568;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-card: 16px;
+      --radius-btn: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Open Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; outline: none; }
     input, textarea { font-family: inherit; outline: none; }
 
     /* ── Login ─────────────────────────────────────────────────── */

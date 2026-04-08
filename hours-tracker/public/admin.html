@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0c12">
+  <title>Enversed Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c12;
+      --surface: #13161f;
+      --surface-hover: #1a1f2e;
+      --border: #1e2535;
+      --accent: #448fff;
+      --accent-hover: #6aabff;
+      --accent-glow: rgba(68,143,255,0.25);
+      --text: #ffffff;
+      --text-sec: #8892a4;
+      --text-muted: #4a5568;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-card: 16px;
+      --radius-btn: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Open Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+    input, textarea, select { font-family: inherit; outline: none; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .admin-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,12,18,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+      gap: 16px;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .admin-wordmark { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; }
+    .admin-subtitle { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+    .header-user { font-size: 13px; color: var(--text-sec); }
+
+    .btn-back {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: color 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back:hover { color: var(--text); }
+
+    .btn-signout {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: color 0.2s;
+      min-height: 36px;
+    }
+    .btn-signout:hover { color: var(--text); }
+
+    /* ── Tab nav ─────────────────────────────────────────────────── */
+    .admin-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .admin-tab {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 16px 20px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .admin-tab:hover { color: var(--text-sec); }
+    .admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .admin-content { max-width: 1400px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Section heading ─────────────────────────────────────────── */
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .section-title { font-size: 20px; font-weight: 700; }
+
+    /* ── Month nav ───────────────────────────────────────────────── */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .month-nav-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .month-nav-btn:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+    .month-label { font-size: 16px; font-weight: 700; min-width: 160px; text-align: center; }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: var(--radius-btn);
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-success {
+      background: rgba(34,197,94,0.15);
+      color: var(--success);
+      border: 1px solid rgba(34,197,94,0.3);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .btn-success:hover { background: rgba(34,197,94,0.25); }
+
+    .btn-danger {
+      background: rgba(239,68,68,0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,0.25); }
+
+    .btn-secondary {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { color: var(--text); }
+
+    .btn-export {
+      background: var(--surface-hover);
+      color: var(--success);
+      border: 1px solid rgba(34,197,94,0.3);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-export:hover { background: rgba(34,197,94,0.1); }
+
+    /* ── Tables ──────────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+
+    th {
+      background: var(--surface-hover);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: var(--text-sec); }
+
+    td {
+      padding: 12px 16px;
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--text-sec);
+    }
+
+    td.hours-cell {
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+    }
+
+    td.hours-cell.zero { color: var(--text-muted); font-weight: 400; }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .total-row td { background: var(--surface-hover); font-weight: 700; color: var(--text); border-top: 2px solid var(--border); }
+
+    /* ── Summary bar ─────────────────────────────────────────────── */
+    .summary-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--text-sec);
+      margin-bottom: 24px;
+    }
+    .summary-bar strong { color: var(--text); }
+
+    /* ── Progress bar ────────────────────────────────────────────── */
+    .progress-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      flex: 1;
+      overflow: hidden;
+      min-width: 60px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .progress-ok   { background: var(--success); }
+    .progress-warn { background: var(--warning); }
+    .progress-over { background: var(--danger); }
+
+    .progress-label { font-size: 12px; white-space: nowrap; }
+
+    /* ── Badges ──────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .badge-pending       { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    .badge-approved      { background: rgba(34,197,94,0.18);  color: #4ade80; }
+    .badge-rejected      { background: rgba(239,68,68,0.18);  color: #f87171; }
+    .badge-travel        { background: rgba(68,143,255,0.18); color: #6aabff; }
+    .badge-accommodation { background: rgba(147,51,234,0.18); color: #c084fc; }
+    .badge-equipment     { background: rgba(249,115,22,0.18); color: #fb923c; }
+    .badge-food          { background: rgba(34,197,94,0.18);  color: #4ade80; }
+    .badge-other         { background: rgba(100,116,139,0.18);color: #94a3b8; }
+    .badge-vacation      { background: rgba(68,143,255,0.18); color: #6aabff; }
+    .badge-sick          { background: rgba(239,68,68,0.18);  color: #f87171; }
+    .badge-personal      { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    .badge-active        { background: rgba(34,197,94,0.12);  color: #4ade80; }
+    .badge-inactive      { background: rgba(100,116,139,0.12);color: #94a3b8; }
+
+    .deadline-ok   { color: var(--success); }
+    .deadline-warn { color: var(--warning); }
+    .deadline-over { color: var(--danger); }
+
+    /* ── Projects grid ───────────────────────────────────────────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .project-card:hover { border-color: rgba(68,143,255,0.3); }
+
+    .project-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .project-swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .project-name { font-size: 16px; font-weight: 700; }
+    .project-code {
+      display: inline-block;
+      background: var(--surface-hover);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .project-desc {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-bottom: 14px;
+      min-height: 18px;
+    }
+
+    .project-stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .project-stat-label { color: var(--text-muted); }
+    .project-stat-value { color: var(--text-sec); font-weight: 600; }
+
+    .project-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    /* ── PTO / Expense list cards ────────────────────────────────── */
+    .admin-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 16px 20px;
+      margin-bottom: 10px;
+    }
+
+    .admin-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .admin-card-info { flex: 1; min-width: 0; }
+    .admin-card-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .admin-card-sub { font-size: 13px; color: var(--text-sec); }
+    .admin-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .admin-card-notes { font-size: 13px; color: var(--text-sec); margin-top: 8px; }
+
+    .admin-card-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: flex-start; }
+
+    /* ── Filter tabs ─────────────────────────────────────────────── */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tab {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .filter-tab:hover { color: var(--text-sec); }
+    .filter-tab.active { background: rgba(68,143,255,0.15); border-color: var(--accent); color: var(--accent); }
+
+    /* ── Summary row ─────────────────────────────────────────────── */
+    .expense-summary {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .expense-summary span { color: var(--text-sec); }
+    .expense-summary strong { color: var(--text); }
+
+    /* ── Modal ───────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 28px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transform: translateY(20px);
+      transition: transform 0.25s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .modal-title { font-size: 18px; font-weight: 700; }
+
+    .modal-close {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      color: var(--text);
+      font-size: 14px;
+      padding: 12px 14px;
+      transition: border-color 0.2s;
+      min-height: 44px;
+    }
+    .form-group textarea { resize: none; height: 80px; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .color-swatches {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-swatch-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .color-swatch-btn:hover { transform: scale(1.1); }
+    .color-swatch-btn.active { border-color: #fff; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 12px 14px;
+    }
+    .toggle-label { font-size: 14px; color: var(--text-sec); }
+
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    /* ── Desktop 2-col ───────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Toast ───────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      z-index: 9999;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--success); color: var(--success); }
+    #toast.error   { border-color: var(--danger);  color: var(--danger); }
+
+    /* ── Empty ───────────────────────────────────────────────────── */
+    .empty-state { text-align: center; padding: 40px; color: var(--text-sec); }
+    .empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+    .loading { color: var(--text-muted); padding: 24px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="header-left">
+      <a href="/" class="btn-back">← App</a>
+      <div class="admin-wordmark">ENVERSED</div>
+      <div class="admin-subtitle">Admin</div>
+    </div>
+    <div class="header-right">
+      <span class="header-user" id="header-user"></span>
+      <button class="btn-signout" id="signout-btn">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="admin-tabs">
+    <button class="admin-tab active" data-tab="overview">Overview</button>
+    <button class="admin-tab" data-tab="projects">Projects</button>
+    <button class="admin-tab" data-tab="expenses">Expenses</button>
+    <button class="admin-tab" data-tab="pto">Time Off</button>
+  </nav>
+
+  <div class="admin-content">
+
+    <!-- Overview tab -->
+    <div class="tab-panel active" id="panel-overview">
+      <div class="section-heading">
+        <div class="section-title">Hours Overview</div>
+        <div class="month-nav">
+          <button class="month-nav-btn" id="ov-prev-month">&#8249;</button>
+          <div class="month-label" id="ov-month-label"></div>
+          <button class="month-nav-btn" id="ov-next-month">&#8250;</button>
+        </div>
+      </div>
+      <div id="ov-summary" class="summary-bar" style="display:none"></div>
+      <div class="two-col">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-sec);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.8px;">Hours by Employee</div>
+          <div class="table-wrap" id="ov-emp-table"><div class="loading">Loading…</div></div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-sec);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.8px;">Hours by Project</div>
+          <div class="table-wrap" id="ov-proj-table"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects tab -->
+    <div class="tab-panel" id="panel-projects">
+      <div class="section-heading">
+        <div class="section-title">Projects</div>
+        <button class="btn-primary" id="new-project-btn">+ New Project</button>
+      </div>
+      <div class="projects-grid" id="projects-grid"><div class="loading">Loading…</div></div>
+    </div>
+
+    <!-- Expenses tab -->
+    <div class="tab-panel" id="panel-expenses">
+      <div class="section-heading">
+        <div class="section-title">Expenses</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div class="month-nav">
+            <button class="month-nav-btn" id="exp-prev-month">&#8249;</button>
+            <div class="month-label" id="exp-month-label"></div>
+            <button class="month-nav-btn" id="exp-next-month">&#8250;</button>
+          </div>
+          <button class="btn-export" id="exp-export-btn">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="expense-summary" id="exp-summary" style="display:none"></div>
+      <div class="table-wrap" id="exp-table"><div class="loading">Loading…</div></div>
+    </div>
+
+    <!-- Time Off tab -->
+    <div class="tab-panel" id="panel-pto">
+      <div class="section-heading">
+        <div class="section-title">Time Off Requests</div>
+      </div>
+      <div class="filter-tabs" id="pto-filters">
+        <button class="filter-tab active" data-status="pending">Pending</button>
+        <button class="filter-tab" data-status="">All</button>
+        <button class="filter-tab" data-status="approved">Approved</button>
+        <button class="filter-tab" data-status="rejected">Rejected</button>
+      </div>
+      <div id="pto-summary" class="summary-bar" style="display:none"></div>
+      <div id="pto-list"><div class="loading">Loading…</div></div>
+    </div>
+
+  </div>
+
+  <!-- Project Modal -->
+  <div class="modal-overlay" id="project-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="project-modal-title">New Project</div>
+        <button class="modal-close" id="project-modal-close">&#215;</button>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Project Name *</label>
+          <input type="text" id="pm-name" placeholder="e.g. TU/e">
+        </div>
+        <div class="form-group">
+          <label>Code (max 6)</label>
+          <input type="text" id="pm-code" maxlength="6" placeholder="TUE">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="pm-desc" placeholder="Brief description…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Max Hours (budget)</label>
+          <input type="number" id="pm-max-hours" min="1" placeholder="e.g. 320">
+        </div>
+        <div class="form-group">
+          <label>Deadline</label>
+          <input type="date" id="pm-deadline">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Color</label>
+        <div class="color-swatches" id="pm-color-swatches"></div>
+      </div>
+      <div class="form-group">
+        <div class="toggle-row">
+          <span class="toggle-label">Active</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="pm-active" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="project-modal-cancel">Cancel</button>
+        <button class="btn-primary" id="project-modal-save">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ── Auth check ────────────────────────────────────────────────
+    let auth = null;
+    try { auth = JSON.parse(localStorage.getItem('enversed_auth') || 'null'); } catch {}
+    if (!auth || !auth.token) { location.href = '/'; throw 0; }
+    try {
+      const payload = JSON.parse(atob(auth.token.split('.')[1]));
+      if (payload.exp < Date.now() / 1000) { localStorage.removeItem('enversed_auth'); location.href = '/'; throw 0; }
+      if (payload.role !== 'admin') { location.href = '/'; throw 0; }
+    } catch (e) { if (e !== 0) { location.href = '/'; throw 0; } }
+
+    document.getElementById('header-user').textContent = auth.user.name;
+    document.getElementById('signout-btn').addEventListener('click', () => {
+      localStorage.removeItem('enversed_auth');
+      location.href = '/';
+    });
+
+    // ── API helper ────────────────────────────────────────────────
+    async function apiFetch(path, options = {}) {
+      const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token}`, ...(options.headers || {}) };
+      const res = await fetch(path, { ...options, headers });
+      if (res.status === 401) { localStorage.removeItem('enversed_auth'); location.href = '/'; return null; }
+      return res;
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────
+    const toast = document.getElementById('toast');
+    function showToast(msg, type = 'success') {
+      toast.textContent = msg;
+      toast.className = `show ${type}`;
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { toast.className = ''; }, 2800);
+    }
+
+    // ── Tabs ──────────────────────────────────────────────────────
+    let activeTab = 'overview';
+
+    document.querySelectorAll('.admin-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeTab = btn.dataset.tab;
+        document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`panel-${activeTab}`).classList.add('active');
+        if (activeTab === 'overview') loadOverview();
+        if (activeTab === 'projects') loadProjects();
+        if (activeTab === 'expenses') loadExpenses();
+        if (activeTab === 'pto') loadPto();
+      });
+    });
+
+    // ── Utils ─────────────────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function monthStr(y, m) { return `${y}-${pad(m+1)}`; }
+
+    function formatMonth(y, m) {
+      return new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
+
+    function formatDate(ds) {
+      if (!ds) return '—';
+      const [y, m, d] = ds.split('-').map(Number);
+      return new Date(y, m-1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function daysBetween(a, b) {
+      return Math.round((new Date(b) - new Date(a)) / 86400000) + 1;
+    }
+
+    function deadlineClass(ds) {
+      if (!ds) return '';
+      const today = new Date(); today.setHours(0,0,0,0);
+      const d = new Date(ds);
+      if (d < today) return 'deadline-over';
+      if ((d - today) / 86400000 <= 7) return 'deadline-warn';
+      return 'deadline-ok';
+    }
+
+    function categoryBadgeClass(cat) {
+      const map = { Travel: 'badge-travel', Accommodation: 'badge-accommodation', Equipment: 'badge-equipment', Food: 'badge-food', Other: 'badge-other' };
+      return map[cat] || 'badge-other';
+    }
+
+    // ── Overview ──────────────────────────────────────────────────
+    const now = new Date();
+    let ovYear = now.getFullYear(), ovMonth = now.getMonth();
+
+    document.getElementById('ov-prev-month').onclick = () => { ovMonth--; if (ovMonth < 0) { ovMonth = 11; ovYear--; } loadOverview(); };
+    document.getElementById('ov-next-month').onclick = () => { ovMonth++; if (ovMonth > 11) { ovMonth = 0; ovYear++; } loadOverview(); };
+
+    async function loadOverview() {
+      document.getElementById('ov-month-label').textContent = formatMonth(ovYear, ovMonth);
+      document.getElementById('ov-emp-table').innerHTML = '<div class="loading">Loading…</div>';
+      document.getElementById('ov-proj-table').innerHTML = '<div class="loading">Loading…</div>';
+      document.getElementById('ov-summary').style.display = 'none';
+
+      const res = await apiFetch(`/api/admin/reports/hours?month=${monthStr(ovYear, ovMonth)}`);
+      if (!res || !res.ok) { showToast('Failed to load data', 'error'); return; }
+      const data = await res.json();
+      renderEmpTable(data);
+      renderProjTable(data);
+      renderOvSummary(data);
+    }
+
+    function renderEmpTable(data) {
+      const el = document.getElementById('ov-emp-table');
+      if (!data.by_employee.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No hours logged</p></div>'; return; }
+      const clients = [...new Set(data.by_employee.flatMap(e => e.by_client.map(c => c.client_name)))].sort();
+      let html = '<table><thead><tr><th>Employee</th>';
+      for (const c of clients) html += `<th>${c}</th>`;
+      html += '<th class="sortable" id="sort-total">Total ↕</th></tr></thead><tbody>';
+      let totals = {};
+      for (const emp of data.by_employee) {
+        html += `<tr><td style="font-weight:600;color:var(--text)">${emp.name}</td>`;
+        let rowTotal = 0;
+        for (const c of clients) {
+          const bc = emp.by_client.find(x => x.client_name === c);
+          const h = bc ? bc.hours : 0;
+          rowTotal += h;
+          totals[c] = (totals[c] || 0) + h;
+          html += `<td class="hours-cell ${h === 0 ? 'zero' : ''}">${h || '—'}</td>`;
+        }
+        html += `<td class="hours-cell">${rowTotal}</td></tr>`;
+      }
+      html += '<tr class="total-row"><td>Total</td>';
+      let grandTotal = 0;
+      for (const c of clients) { html += `<td class="hours-cell">${totals[c] || 0}</td>`; grandTotal += totals[c] || 0; }
+      html += `<td class="hours-cell">${grandTotal}</td></tr></tbody></table>`;
+      el.innerHTML = html;
+    }
+
+    function renderProjTable(data) {
+      const el = document.getElementById('ov-proj-table');
+      if (!data.by_client.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No projects</p></div>'; return; }
+      const today = new Date(); today.setHours(0,0,0,0);
+      let html = '<table><thead><tr><th>Project</th><th>Total</th><th>Budget</th><th>Deadline</th></tr></thead><tbody>';
+      for (const c of data.by_client) {
+        let budgetHtml = '<span style="color:var(--text-muted)">No budget</span>';
+        if (c.max_hours) {
+          const pct = Math.min(Math.round((c.total_logged / c.max_hours) * 100), 100);
+          const cls = pct > 100 ? 'progress-over' : pct >= 80 ? 'progress-warn' : 'progress-ok';
+          budgetHtml = `
+            <div class="progress-bar-wrap">
+              <div class="progress-bar"><div class="progress-bar-fill ${cls}" style="width:${pct}%"></div></div>
+              <span class="progress-label">${c.total_logged}/${c.max_hours}h</span>
+            </div>`;
+        }
+        let deadlineHtml = '<span style="color:var(--text-muted)">—</span>';
+        if (c.deadline) {
+          const dCls = deadlineClass(c.deadline);
+          deadlineHtml = `<span class="${dCls}">${formatDate(c.deadline)}</span>`;
+        }
+        html += `<tr>
+          <td style="font-weight:600;color:var(--text)">${c.client_name}</td>
+          <td class="hours-cell">${c.total_logged}</td>
+          <td>${budgetHtml}</td>
+          <td>${deadlineHtml}</td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    function renderOvSummary(data) {
+      const totalHours = data.by_employee.reduce((s, e) => s + e.total_hours, 0);
+      const empCount = data.by_employee.length;
+      const el = document.getElementById('ov-summary');
+      el.innerHTML = `Total hours logged this month: <strong>${totalHours}h</strong> across <strong>${empCount}</strong> employee${empCount !== 1 ? 's' : ''}`;
+      el.style.display = 'block';
+    }
+
+    // ── Projects ──────────────────────────────────────────────────
+    const COLORS = ['#448fff','#0066cc','#00a0e3','#f9b000','#cc1e2c','#154273','#e8501a','#e2a62a','#22c55e','#9333ea','#ec4899','#64748b'];
+    let projectColorSelected = COLORS[0];
+    let editingProjectId = null;
+    let allProjects = [];
+
+    async function loadProjects() {
+      const el = document.getElementById('projects-grid');
+      el.innerHTML = '<div class="loading">Loading…</div>';
+      const res = await apiFetch('/api/admin/clients');
+      if (!res || !res.ok) return;
+      allProjects = await res.json();
+      renderProjects();
+    }
+
+    function renderProjects() {
+      const el = document.getElementById('projects-grid');
+      if (!allProjects.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📁</div><p>No projects yet</p></div>'; return; }
+      el.innerHTML = '';
+      for (const p of allProjects) {
+        const loggedHours = p.total_hours_logged || 0;
+        let budgetHtml = '<span style="color:var(--text-muted);font-size:13px;">No budget set</span>';
+        if (p.max_hours) {
+          const pct = Math.min(Math.round((loggedHours / p.max_hours) * 100), 100);
+          const cls = pct > 100 ? 'progress-over' : pct >= 80 ? 'progress-warn' : 'progress-ok';
+          budgetHtml = `
+            <div class="progress-bar-wrap">
+              <div class="progress-bar"><div class="progress-bar-fill ${cls}" style="width:${pct}%"></div></div>
+              <span class="progress-label" style="font-size:12px;">${loggedHours}/${p.max_hours}h</span>
+            </div>`;
+        }
+        let deadlineHtml = '<span style="color:var(--text-muted);">No deadline</span>';
+        if (p.deadline) {
+          const dCls = deadlineClass(p.deadline);
+          deadlineHtml = `<span class="${dCls}">${formatDate(p.deadline)}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+          <div class="project-header">
+            <div class="project-swatch" style="background:${p.color}"></div>
+            <div>
+              <div class="project-name">${p.name} <span class="project-code">${p.code || ''}</span></div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+              <span class="badge badge-${p.active ? 'active' : 'inactive'}">${p.active ? 'Active' : 'Inactive'}</span>
+            </div>
+          </div>
+          <div class="project-desc">${p.description || ''}</div>
+          <div class="project-stat">
+            <span class="project-stat-label">Budget</span>
+            <div style="flex:1;margin-left:12px;">${budgetHtml}</div>
+          </div>
+          <div class="project-stat">
+            <span class="project-stat-label">Deadline</span>
+            <span class="project-stat-value">${deadlineHtml}</span>
+          </div>
+          <div class="project-stat">
+            <span class="project-stat-label">Total hours (all time)</span>
+            <span class="project-stat-value">${loggedHours}h</span>
+          </div>
+          <div class="project-actions">
+            <button class="btn-secondary edit-btn" data-id="${p.id}">Edit</button>
+          </div>
+        `;
+        card.querySelector('.edit-btn').addEventListener('click', () => openProjectModal(p));
+        el.appendChild(card);
+      }
+    }
+
+    function openProjectModal(project = null) {
+      editingProjectId = project ? project.id : null;
+      document.getElementById('project-modal-title').textContent = project ? 'Edit Project' : 'New Project';
+      document.getElementById('project-modal-save').textContent = project ? 'Save Changes' : 'Create Project';
+      document.getElementById('pm-name').value = project ? project.name : '';
+      document.getElementById('pm-code').value = project ? (project.code || '') : '';
+      document.getElementById('pm-desc').value = project ? (project.description || '') : '';
+      document.getElementById('pm-max-hours').value = project ? (project.max_hours || '') : '';
+      document.getElementById('pm-deadline').value = project ? (project.deadline || '') : '';
+      document.getElementById('pm-active').checked = project ? !!project.active : true;
+      projectColorSelected = project ? project.color : COLORS[0];
+      renderColorSwatches();
+      document.getElementById('project-modal').classList.add('open');
+    }
+
+    function renderColorSwatches() {
+      const el = document.getElementById('pm-color-swatches');
+      el.innerHTML = '';
+      for (const c of COLORS) {
+        const btn = document.createElement('button');
+        btn.className = `color-swatch-btn ${c === projectColorSelected ? 'active' : ''}`;
+        btn.style.background = c;
+        btn.title = c;
+        btn.addEventListener('click', () => {
+          projectColorSelected = c;
+          el.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.toggle('active', b.title === c));
+        });
+        el.appendChild(btn);
+      }
+    }
+
+    function closeProjectModal() { document.getElementById('project-modal').classList.remove('open'); }
+
+    document.getElementById('project-modal-close').addEventListener('click', closeProjectModal);
+    document.getElementById('project-modal-cancel').addEventListener('click', closeProjectModal);
+    document.getElementById('new-project-btn').addEventListener('click', () => openProjectModal(null));
+
+    document.getElementById('project-modal-save').addEventListener('click', async () => {
+      const name = document.getElementById('pm-name').value.trim();
+      if (!name) { showToast('Name is required', 'error'); return; }
+      const body = {
+        name,
+        code: document.getElementById('pm-code').value.trim(),
+        description: document.getElementById('pm-desc').value.trim(),
+        max_hours: document.getElementById('pm-max-hours').value ? parseFloat(document.getElementById('pm-max-hours').value) : null,
+        deadline: document.getElementById('pm-deadline').value || null,
+        color: projectColorSelected,
+        active: document.getElementById('pm-active').checked,
+      };
+      const btn = document.getElementById('project-modal-save');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const res = editingProjectId
+        ? await apiFetch(`/api/admin/clients/${editingProjectId}`, { method: 'PUT', body: JSON.stringify(body) })
+        : await apiFetch('/api/admin/clients', { method: 'POST', body: JSON.stringify(body) });
+      btn.disabled = false; btn.textContent = editingProjectId ? 'Save Changes' : 'Create Project';
+      if (res && res.ok) {
+        closeProjectModal();
+        showToast(editingProjectId ? 'Project updated' : 'Project created');
+        loadProjects();
+      } else {
+        const err = res ? await res.json() : {};
+        showToast(err.error || 'Failed', 'error');
+      }
+    });
+
+    // Close modal on overlay click
+    document.getElementById('project-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('project-modal')) closeProjectModal();
+    });
+
+    // ── Expenses ──────────────────────────────────────────────────
+    let expYear = now.getFullYear(), expMonth = now.getMonth();
+
+    document.getElementById('exp-prev-month').onclick = () => { expMonth--; if (expMonth < 0) { expMonth = 11; expYear--; } loadExpenses(); };
+    document.getElementById('exp-next-month').onclick = () => { expMonth++; if (expMonth > 11) { expMonth = 0; expYear++; } loadExpenses(); };
+
+    async function loadExpenses() {
+      document.getElementById('exp-month-label').textContent = formatMonth(expYear, expMonth);
+      document.getElementById('exp-table').innerHTML = '<div class="loading">Loading…</div>';
+      document.getElementById('exp-summary').style.display = 'none';
+      const res = await apiFetch(`/api/admin/expenses?month=${monthStr(expYear, expMonth)}`);
+      if (!res || !res.ok) return;
+      const expenses = await res.json();
+      renderExpenseTable(expenses);
+    }
+
+    function renderExpenseTable(expenses) {
+      const el = document.getElementById('exp-table');
+      const sumEl = document.getElementById('exp-summary');
+
+      if (!expenses.length) {
+        el.innerHTML = '<div class="empty-state"><div class="empty-icon">🧾</div><p>No expenses this month</p></div>';
+        sumEl.style.display = 'none';
+        return;
+      }
+
+      const total = expenses.reduce((s, e) => s + e.amount, 0);
+      const pending = expenses.filter(e => e.status === 'pending').length;
+      sumEl.innerHTML = `<span><strong>${expenses.length}</strong> expenses</span> · <span>Total: <strong>€ ${total.toFixed(2)}</strong></span> · <span><strong>${pending}</strong> pending approval</span>`;
+      sumEl.style.display = 'flex';
+
+      let html = `<table><thead><tr>
+        <th>Date</th><th>Employee</th><th>Category</th><th>Description</th><th>Amount</th><th>Status</th><th>Actions</th>
+      </tr></thead><tbody>`;
+      for (const e of expenses) {
+        html += `<tr>
+          <td>${formatDate(e.date)}</td>
+          <td style="font-weight:600;color:var(--text)">${e.user_name}</td>
+          <td><span class="badge ${categoryBadgeClass(e.category)}">${e.category}</span></td>
+          <td>${e.description}</td>
+          <td style="font-weight:700;color:var(--text)">€ ${e.amount.toFixed(2)}</td>
+          <td><span class="badge badge-${e.status}">${e.status}</span></td>
+          <td style="white-space:nowrap;">
+            ${e.status === 'pending' ? `
+              <button class="btn-success" data-id="${e.id}" data-action="approved" style="margin-right:4px;">✓ Approve</button>
+              <button class="btn-danger" data-id="${e.id}" data-action="rejected">✗ Reject</button>
+            ` : '—'}
+          </td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      el.innerHTML = html;
+
+      el.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id, status = btn.dataset.action;
+          const res = await apiFetch(`/api/admin/expenses/${id}`, { method: 'PUT', body: JSON.stringify({ status }) });
+          if (res && res.ok) { showToast(`Expense ${status}`); loadExpenses(); }
+          else showToast('Failed', 'error');
+        });
+      });
+    }
+
+    document.getElementById('exp-export-btn').addEventListener('click', async () => {
+      const res = await apiFetch(`/api/admin/expenses/export?month=${monthStr(expYear, expMonth)}`);
+      if (!res || !res.ok) { showToast('Export failed', 'error'); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `expenses-${monthStr(expYear, expMonth)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ── PTO ───────────────────────────────────────────────────────
+    let ptoStatusFilter = 'pending';
+
+    document.querySelectorAll('.filter-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        ptoStatusFilter = btn.dataset.status;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        loadPto();
+      });
+    });
+
+    async function loadPto() {
+      document.getElementById('pto-list').innerHTML = '<div class="loading">Loading…</div>';
+      document.getElementById('pto-summary').style.display = 'none';
+      const url = ptoStatusFilter ? `/api/admin/pto?status=${ptoStatusFilter}` : '/api/admin/pto';
+      const res = await apiFetch(url);
+      if (!res || !res.ok) return;
+      const ptoItems = await res.json();
+      renderPtoList(ptoItems);
+    }
+
+    function renderPtoList(items) {
+      const listEl = document.getElementById('pto-list');
+      const sumEl = document.getElementById('pto-summary');
+
+      if (ptoStatusFilter === 'pending') {
+        const pendingCount = items.filter(p => p.status === 'pending').length;
+        sumEl.textContent = `${pendingCount} pending request${pendingCount !== 1 ? 's' : ''}`;
+        sumEl.style.display = pendingCount > 0 ? 'block' : 'none';
+      } else {
+        sumEl.style.display = 'none';
+      }
+
+      if (!items.length) {
+        listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">🌴</div><p>No requests found</p></div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      for (const p of items) {
+        const days = daysBetween(p.start_date, p.end_date);
+        const dateRange = p.start_date === p.end_date
+          ? formatDate(p.start_date)
+          : `${formatDate(p.start_date)} – ${formatDate(p.end_date)}`;
+        const initial = (p.user_name || '?')[0].toUpperCase();
+        const statusIcon = p.status === 'approved' ? '✓' : p.status === 'rejected' ? '✗' : '⏳';
+
+        const card = document.createElement('div');
+        card.className = 'admin-card';
+        card.innerHTML = `
+          <div class="admin-card-top">
+            <div class="user-avatar">${initial}</div>
+            <div class="admin-card-info">
+              <div class="admin-card-name">${p.user_name}</div>
+              <div class="admin-card-sub">${dateRange} · ${days} day${days !== 1 ? 's' : ''}</div>
+              <div class="admin-card-badges">
+                <span class="badge badge-${p.type.toLowerCase()}">${p.type}</span>
+                <span class="badge badge-${p.status}">${statusIcon} ${p.status}</span>
+              </div>
+              ${p.notes ? `<div class="admin-card-notes">${p.notes}</div>` : ''}
+            </div>
+            <div class="admin-card-actions">
+              ${p.status === 'pending' ? `
+                <button class="btn-success" data-id="${p.id}" data-action="approved">✓</button>
+                <button class="btn-danger" data-id="${p.id}" data-action="rejected">✗</button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+        card.querySelectorAll('[data-action]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const res = await apiFetch(`/api/admin/pto/${btn.dataset.id}`, {
+              method: 'PUT', body: JSON.stringify({ status: btn.dataset.action })
+            });
+            if (res && res.ok) { showToast(`Request ${btn.dataset.action}`); loadPto(); }
+            else showToast('Failed', 'error');
+          });
+        });
+        listEl.appendChild(card);
+      }
+    }
+
+    // ── Boot ──────────────────────────────────────────────────────
+    loadOverview();
+
+  })();
+  </script>
+</body>
+</html>

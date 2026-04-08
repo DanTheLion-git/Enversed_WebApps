@@ -44,7 +44,38 @@ function getDb() {
       created_at TEXT DEFAULT (datetime('now')),
       UNIQUE(user_id, client_id, date)
     );
+
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      date TEXT NOT NULL,
+      amount REAL NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      reviewed_by INTEGER REFERENCES users(id),
+      reviewed_at TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS pto_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      type TEXT NOT NULL,
+      notes TEXT DEFAULT '',
+      status TEXT DEFAULT 'pending',
+      reviewed_by INTEGER REFERENCES users(id),
+      reviewed_at TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
+
+  // Migrations for clients table
+  try { _db.exec("ALTER TABLE clients ADD COLUMN max_hours REAL"); } catch(e) {}
+  try { _db.exec("ALTER TABLE clients ADD COLUMN deadline TEXT"); } catch(e) {}
+  try { _db.exec("ALTER TABLE clients ADD COLUMN description TEXT DEFAULT ''"); } catch(e) {}
 
   const userCount = _db.prepare('SELECT COUNT(*) as c FROM users').get().c;
   if (userCount === 0) {
@@ -74,23 +105,32 @@ function seed(db) {
     return info.lastInsertRowid;
   });
 
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+
+  function firstOfMonth(addMonths) {
+    const d = new Date(year, month + addMonths, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  }
+
   const insertClient = db.prepare(
-    'INSERT INTO clients (name, code, color) VALUES (?, ?, ?)'
+    'INSERT INTO clients (name, code, color, max_hours, deadline, description) VALUES (?, ?, ?, ?, ?, ?)'
   );
 
   const clients = [
-    { name: 'TU/e',               code: 'TUE', color: '#0066cc' },
-    { name: 'Philips',            code: 'PHI', color: '#00a0e3' },
-    { name: 'NS',                 code: 'NS',  color: '#f9b000' },
-    { name: 'Red Bull',           code: 'RB',  color: '#cc1e2c' },
-    { name: 'Politie Nederland',  code: 'POL', color: '#154273' },
-    { name: 'Sioux Technologies', code: 'SIX', color: '#e8501a' },
-    { name: 'Bavaria',            code: 'BAV', color: '#e2a62a' },
-    { name: 'Enversed Internal',  code: 'INT', color: '#448fff' },
+    { name: 'TU/e',               code: 'TUE', color: '#0066cc', max_hours: 320,  deadline: firstOfMonth(3), description: 'Eindhoven University of Technology research collaboration' },
+    { name: 'Philips',            code: 'PHI', color: '#00a0e3', max_hours: 160,  deadline: firstOfMonth(2), description: 'Philips digital health platform development' },
+    { name: 'NS',                 code: 'NS',  color: '#f9b000', max_hours: 480,  deadline: firstOfMonth(5), description: 'Nederlandse Spoorwegen passenger experience project' },
+    { name: 'Red Bull',           code: 'RB',  color: '#cc1e2c', max_hours: 80,   deadline: firstOfMonth(1), description: 'Red Bull Racing data visualisation' },
+    { name: 'Politie Nederland',  code: 'POL', color: '#154273', max_hours: null, deadline: null,            description: 'Dutch National Police IT modernisation' },
+    { name: 'Sioux Technologies', code: 'SIX', color: '#e8501a', max_hours: null, deadline: null,            description: 'Embedded systems consultancy' },
+    { name: 'Bavaria',            code: 'BAV', color: '#e2a62a', max_hours: null, deadline: null,            description: 'Bavaria brewery brand & digital strategy' },
+    { name: 'Enversed Internal',  code: 'INT', color: '#448fff', max_hours: null, deadline: null,            description: 'Internal tooling and company projects' },
   ];
 
   const clientIds = clients.map(c => {
-    const info = insertClient.run([c.name, c.code, c.color]);
+    const info = insertClient.run([c.name, c.code, c.color, c.max_hours, c.deadline, c.description]);
     return info.lastInsertRowid;
   });
 
@@ -98,20 +138,13 @@ function seed(db) {
     'INSERT OR IGNORE INTO time_entries (user_id, client_id, date, hours, notes) VALUES (?, ?, ?, ?, ?)'
   );
 
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-indexed
-
   function dateStr(day) {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
 
-  // Determine days in current month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Seed entries: skip weekends, spread across 4 users, ~10 entries each
   const entrySets = [
-    // Daniel (admin) — days 1..15
     { userId: userIds[0], entries: [
       { day: 1,  clientIdx: 0, hours: 8 },
       { day: 2,  clientIdx: 1, hours: 6 },
@@ -125,7 +158,6 @@ function seed(db) {
       { day: 13, clientIdx: 5, hours: 8 },
       { day: 14, clientIdx: 6, hours: 5 },
     ]},
-    // Emma — days 1..12
     { userId: userIds[1], entries: [
       { day: 1,  clientIdx: 2, hours: 8 },
       { day: 2,  clientIdx: 2, hours: 8 },
@@ -138,7 +170,6 @@ function seed(db) {
       { day: 10, clientIdx: 6, hours: 7 },
       { day: 13, clientIdx: 4, hours: 8 },
     ]},
-    // Thomas — days 3..14
     { userId: userIds[2], entries: [
       { day: 3,  clientIdx: 1, hours: 8 },
       { day: 6,  clientIdx: 3, hours: 8 },
@@ -151,7 +182,6 @@ function seed(db) {
       { day: 14, clientIdx: 5, hours: 7 },
       { day: 15, clientIdx: 4, hours: 8 },
     ]},
-    // Sophie — days 1..13
     { userId: userIds[3], entries: [
       { day: 1,  clientIdx: 4, hours: 8 },
       { day: 2,  clientIdx: 5, hours: 8 },
@@ -167,8 +197,7 @@ function seed(db) {
     ]},
   ];
 
-  const results = [];
-  _db.exec('BEGIN');
+  db.exec('BEGIN');
   try {
     for (const { userId, entries } of entrySets) {
       for (const { day, clientIdx, hours } of entries) {
@@ -177,10 +206,108 @@ function seed(db) {
         }
       }
     }
-    _db.exec('COMMIT');
+    db.exec('COMMIT');
   } catch (err) {
-    _db.exec('ROLLBACK');
+    db.exec('ROLLBACK');
     throw err;
+  }
+
+  // Seed expenses (only if none exist)
+  const expCount = db.prepare('SELECT COUNT(*) as c FROM expenses').get().c;
+  if (expCount === 0) {
+    function dStr(day) { return dateStr(Math.min(day, daysInMonth)); }
+    const insertExp = db.prepare(
+      'INSERT INTO expenses (user_id, date, amount, category, description, status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+    const danielId = userIds[0];
+    const emmaId   = userIds[1];
+    const thomasId = userIds[2];
+    const sophieId = userIds[3];
+
+    const expenses = [
+      [danielId, dStr(2),  85.00,  'Travel',        'Train Amsterdam – Eindhoven (TU/e sprint)',        'approved', danielId, "datetime('now','-5 days')"],
+      [danielId, dStr(9),  210.00, 'Accommodation', 'Hotel Eindhoven 2 nights',                         'approved', danielId, "datetime('now','-4 days')"],
+      [emmaId,   dStr(3),  45.50,  'Food',          'Client lunch with NS team',                        'approved', danielId, "datetime('now','-3 days')"],
+      [emmaId,   dStr(7),  130.00, 'Equipment',     'USB-C hub for remote work',                        'pending',  null,     null],
+      [emmaId,   dStr(10), 22.80,  'Travel',        'Taxi to Philips HQ',                               'pending',  null,     null],
+      [thomasId, dStr(4),  350.00, 'Equipment',     'Mechanical keyboard for home office',              'pending',  null,     null],
+      [thomasId, dStr(8),  67.40,  'Travel',        'Train Rotterdam – Eindhoven return',               'approved', danielId, "datetime('now','-2 days')"],
+      [sophieId, dStr(1),  95.00,  'Travel',        'Flight Amsterdam – Brussels (Red Bull event)',     'approved', danielId, "datetime('now','-6 days')"],
+      [sophieId, dStr(6),  18.50,  'Food',          'Working lunch – Enversed office',                  'pending',  null,     null],
+      [sophieId, dStr(11), 275.00, 'Accommodation', 'Airbnb Rotterdam (NS on-site week)',               'pending',  null,     null],
+    ];
+
+    db.exec('BEGIN');
+    try {
+      for (const [uid, date, amount, category, description, status, reviewedBy, reviewedAt] of expenses) {
+        if (reviewedAt) {
+          db.prepare(
+            `INSERT INTO expenses (user_id, date, amount, category, description, status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ${reviewedAt})`
+          ).run([uid, date, amount, category, description, status, reviewedBy]);
+        } else {
+          insertExp.run([uid, date, amount, category, description, status, null, null]);
+        }
+      }
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+  }
+
+  // Seed PTO requests (only if none exist)
+  const ptoCount = db.prepare('SELECT COUNT(*) as c FROM pto_requests').get().c;
+  if (ptoCount === 0) {
+    const insertPto = db.prepare(
+      'INSERT INTO pto_requests (user_id, start_date, end_date, type, notes, status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    );
+
+    // Next week Monday (approx)
+    const nextMon = new Date(year, month, now.getDate() + (8 - now.getDay()) % 7 || 7);
+    function fmtDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+    const nextMonStr = fmtDate(nextMon);
+    const nextWedStr = fmtDate(new Date(nextMon.getFullYear(), nextMon.getMonth(), nextMon.getDate() + 2));
+
+    // Yesterday
+    const yesterday = new Date(year, month, now.getDate() - 1);
+    const yesterdayStr = fmtDate(yesterday);
+
+    // Last week Mon–Fri
+    const lastMonday = new Date(year, month, now.getDate() - now.getDay() - 6);
+    const lastFriday = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate() + 4);
+    const lastMonStr = fmtDate(lastMonday);
+    const lastFriStr = fmtDate(lastFriday);
+
+    const danielId = userIds[0];
+    const emmaId   = userIds[1];
+    const thomasId = userIds[2];
+    const sophieId = userIds[3];
+
+    db.exec('BEGIN');
+    try {
+      // Emma: 3 vacation days next week — pending
+      insertPto.run([emmaId, nextMonStr, nextWedStr, 'Vacation', 'Family trip to Paris', 'pending', null, null]);
+      // Thomas: 1 sick day yesterday — pending
+      insertPto.run([thomasId, yesterdayStr, yesterdayStr, 'Sick', 'Feeling unwell, staying home', 'pending', null, null]);
+      // Sophie: vacation last week — approved by Daniel
+      db.prepare(
+        `INSERT INTO pto_requests (user_id, start_date, end_date, type, notes, status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now','-7 days'))`
+      ).run([sophieId, lastMonStr, lastFriStr, 'Vacation', 'Annual leave – hiking trip', 'approved', danielId]);
+      // Daniel: personal day — approved
+      const personalDay = fmtDate(new Date(year, month, Math.max(1, now.getDate() - 10)));
+      db.prepare(
+        `INSERT INTO pto_requests (user_id, start_date, end_date, type, notes, status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now','-10 days'))`
+      ).run([danielId, personalDay, personalDay, 'Personal', 'Moving house', 'approved', danielId]);
+      // Emma: rejected sick day from earlier
+      const earlierDay = fmtDate(new Date(year, month, Math.max(1, now.getDate() - 15)));
+      db.prepare(
+        `INSERT INTO pto_requests (user_id, start_date, end_date, type, notes, status, reviewed_by, reviewed_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now','-14 days'))`
+      ).run([emmaId, earlierDay, earlierDay, 'Sick', '', 'rejected', danielId]);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
   }
 }
 
