@@ -72,10 +72,73 @@ function getDb() {
     );
   `);
 
+  // New tables
+  _db.exec(`
+    CREATE TABLE IF NOT EXISTS store_credentials (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      domain TEXT NOT NULL UNIQUE,
+      store_name TEXT NOT NULL,
+      login_url TEXT NOT NULL,
+      username TEXT DEFAULT '',
+      password TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS purchase_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      client_id INTEGER REFERENCES clients(id),
+      url TEXT NOT NULL,
+      store_domain TEXT DEFAULT '',
+      store_name TEXT DEFAULT '',
+      description TEXT DEFAULT '',
+      estimated_cost REAL,
+      actual_cost REAL,
+      status TEXT DEFAULT 'pending',
+      reviewed_by INTEGER REFERENCES users(id),
+      reviewed_at TEXT,
+      purchased_at TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+
   // Migrations for clients table
   try { _db.exec("ALTER TABLE clients ADD COLUMN max_hours REAL"); } catch(e) {}
   try { _db.exec("ALTER TABLE clients ADD COLUMN deadline TEXT"); } catch(e) {}
   try { _db.exec("ALTER TABLE clients ADD COLUMN description TEXT DEFAULT ''"); } catch(e) {}
+  try { _db.exec("ALTER TABLE clients ADD COLUMN purchase_budget REAL"); } catch(e) {}
+
+  // Migration: make purchase_requests.client_id nullable (was incorrectly NOT NULL)
+  try {
+    const cols = _db.prepare("PRAGMA table_info(purchase_requests)").all();
+    const col = cols.find(c => c.name === 'client_id');
+    if (col && col.notnull === 1) {
+      _db.exec("PRAGMA foreign_keys = OFF");
+      _db.exec(`
+        CREATE TABLE purchase_requests_v2 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL REFERENCES users(id),
+          client_id INTEGER REFERENCES clients(id),
+          url TEXT NOT NULL,
+          store_domain TEXT DEFAULT '',
+          store_name TEXT DEFAULT '',
+          description TEXT DEFAULT '',
+          estimated_cost REAL,
+          actual_cost REAL,
+          status TEXT DEFAULT 'pending',
+          reviewed_by INTEGER REFERENCES users(id),
+          reviewed_at TEXT,
+          purchased_at TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        )
+      `);
+      _db.exec("INSERT INTO purchase_requests_v2 SELECT * FROM purchase_requests");
+      _db.exec("DROP TABLE purchase_requests");
+      _db.exec("ALTER TABLE purchase_requests_v2 RENAME TO purchase_requests");
+      _db.exec("PRAGMA foreign_keys = ON");
+    }
+  } catch(e) {}
 
   const userCount = _db.prepare('SELECT COUNT(*) as c FROM users').get().c;
   if (userCount === 0) {
@@ -308,6 +371,81 @@ function seed(db) {
       db.exec('ROLLBACK');
       throw err;
     }
+  }
+
+  // Seed store credentials (pre-populate known asset stores without passwords)
+  const storeCount = db.prepare('SELECT COUNT(*) as c FROM store_credentials').get().c;
+  if (storeCount === 0) {
+    const insertStore = db.prepare(
+      'INSERT INTO store_credentials (domain, store_name, login_url, username, password, notes) VALUES (?, ?, ?, ?, ?, ?)'
+    );
+    const stores = [
+      ['assetstore.unity.com',  'Unity Asset Store',       'https://id.unity.com/en/conversations/login',        '', '', ''],
+      ['fab.com',               'Fab (Epic/Unreal)',        'https://www.fab.com/sign-in',                        '', '', 'Formerly Unreal Marketplace + Quixel + ArtStation Marketplace'],
+      ['turbosquid.com',        'TurboSquid',              'https://www.turbosquid.com/Login',                   '', '', ''],
+      ['cgtrader.com',          'CGTrader',                'https://www.cgtrader.com/users/sign_in',              '', '', ''],
+      ['elements.envato.com',   'Envato Elements',         'https://elements.envato.com/sign-in',                '', '', 'Also covers ThemeForest, CodeCanyon, AudioJungle'],
+      ['codecanyon.net',        'CodeCanyon (Envato)',     'https://elements.envato.com/sign-in',                '', '', 'Use Envato login'],
+      ['themeforest.net',       'ThemeForest (Envato)',    'https://elements.envato.com/sign-in',                '', '', 'Use Envato login'],
+      ['stock.adobe.com',       'Adobe Stock',             'https://auth.services.adobe.com/en_US/index.html',   '', '', ''],
+      ['shutterstock.com',      'Shutterstock',            'https://www.shutterstock.com/login',                 '', '', ''],
+      ['sketchfab.com',         'Sketchfab Store',         'https://sketchfab.com/login',                        '', '', ''],
+      ['artstation.com',        'ArtStation Marketplace',  'https://www.artstation.com/users/sign_in',            '', '', ''],
+      ['gamedevmarket.net',     'GameDev Market',          'https://www.gamedevmarket.net/sign-in',              '', '', ''],
+      ['itch.io',               'Itch.io',                 'https://itch.io/login',                              '', '', ''],
+      ['kenney.nl',             'Kenney Assets',           'https://kenney.nl/account',                          '', '', ''],
+    ];
+    db.exec('BEGIN');
+    try {
+      for (const row of stores) insertStore.run(row);
+      db.exec('COMMIT');
+    } catch (err) { db.exec('ROLLBACK'); throw err; }
+  }
+
+  // Seed purchase requests (only if none exist)
+  const prCount = db.prepare('SELECT COUNT(*) as c FROM purchase_requests').get().c;
+  if (prCount === 0) {
+    const danielId = userIds[0];
+    const emmaId   = userIds[1];
+    const thomasId = userIds[2];
+    const sophieId = userIds[3];
+
+    const reqs = [
+      // Pending
+      [emmaId,   clientIds[0], 'https://assetstore.unity.com/packages/3d/characters/humanoids/fantasy/polygon-fantasy-rivals-236861', 'assetstore.unity.com', 'Unity Asset Store', 'Need polygon characters for TU/e VR prototype', 54.99, null, 'pending'],
+      [thomasId, clientIds[2], 'https://fab.com/listings/abc123-environment-pack', 'fab.com', 'Fab (Epic/Unreal)', 'Outdoor environment pack for NS station simulation', 89.99, null, 'pending'],
+      [sophieId, clientIds[1], 'https://www.shutterstock.com/image-photo/corporate-meeting-office-12345', 'shutterstock.com', 'Shutterstock', 'Stock photo for Philips presentation deck', 29.00, null, 'pending'],
+      // Approved (waiting to be purchased)
+      [danielId, clientIds[7], 'https://elements.envato.com/data-visualization-dashboard-UI-kit-XYZABC', 'elements.envato.com', 'Envato Elements', 'Dashboard UI kit for internal tools project', 16.50, null, 'approved'],
+      // Purchased (completed, budget deducted)
+      [emmaId,   clientIds[0], 'https://turbosquid.com/3d-models/university-building-3d-1234567', 'turbosquid.com', 'TurboSquid', 'University building model for TU/e campus VR', 49.00, 49.00, 'purchased'],
+      [thomasId, clientIds[3], 'https://assetstore.unity.com/packages/audio/sound-fx/redbull-sfx-pack-99999', 'assetstore.unity.com', 'Unity Asset Store', 'Sound FX pack for Red Bull activation', 35.00, 35.00, 'purchased'],
+    ];
+
+    db.exec('BEGIN');
+    try {
+      for (const [uid, cid, url, sd, sn, desc, est, act, status] of reqs) {
+        const isPurchased = status === 'purchased';
+        const isApproved  = status === 'approved';
+        if (isPurchased) {
+          db.prepare(
+            `INSERT INTO purchase_requests (user_id, client_id, url, store_domain, store_name, description, estimated_cost, actual_cost, status, reviewed_by, reviewed_at, purchased_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now','-3 days'), datetime('now','-2 days'))`
+          ).run([uid, cid, url, sd, sn, desc, est, act, status, danielId]);
+        } else if (isApproved) {
+          db.prepare(
+            `INSERT INTO purchase_requests (user_id, client_id, url, store_domain, store_name, description, estimated_cost, actual_cost, status, reviewed_by, reviewed_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now','-1 days'))`
+          ).run([uid, cid, url, sd, sn, desc, est, act, status, danielId]);
+        } else {
+          db.prepare(
+            `INSERT INTO purchase_requests (user_id, client_id, url, store_domain, store_name, description, estimated_cost, actual_cost, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          ).run([uid, cid, url, sd, sn, desc, est, act, status]);
+        }
+      }
+      db.exec('COMMIT');
+    } catch (err) { db.exec('ROLLBACK'); throw err; }
   }
 }
 

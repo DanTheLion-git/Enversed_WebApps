@@ -681,6 +681,7 @@
     <button class="admin-tab" data-tab="projects">Projects</button>
     <button class="admin-tab" data-tab="expenses">Expenses</button>
     <button class="admin-tab" data-tab="pto">Time Off</button>
+    <button class="admin-tab" data-tab="purchases">Purchases</button>
   </nav>
 
   <div class="admin-content">
@@ -747,6 +748,32 @@
       </div>
       <div id="pto-summary" class="summary-bar" style="display:none"></div>
       <div id="pto-list"><div class="loading">Loading…</div></div>
+    </div>
+
+    <!-- Purchases tab -->
+    <div class="tab-panel" id="panel-purchases">
+      <div class="section-heading">
+        <div class="section-title">Purchase Requests</div>
+      </div>
+      <div class="filter-tabs" id="pr-filters">
+        <button class="filter-tab active" data-status="pending">Pending</button>
+        <button class="filter-tab" data-status="">All</button>
+        <button class="filter-tab" data-status="approved">Approved</button>
+        <button class="filter-tab" data-status="purchased">Purchased</button>
+        <button class="filter-tab" data-status="rejected">Rejected</button>
+      </div>
+      <div id="pr-list"><div class="loading">Loading…</div></div>
+
+      <div style="margin-top:32px;">
+        <div class="section-heading" style="margin-bottom:16px;">
+          <div class="section-title" style="font-size:18px;">Store Credentials</div>
+          <button class="btn-primary" id="new-store-btn" style="font-size:13px;padding:8px 16px;">+ Add Store</button>
+        </div>
+        <div style="font-size:12px;color:var(--warning);background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;">
+          ⚠ Store passwords are stored unencrypted. Only store credentials for shared/team accounts. Do not store personal passwords.
+        </div>
+        <div id="store-creds-list"><div class="loading">Loading…</div></div>
+      </div>
     </div>
 
   </div>
@@ -856,6 +883,7 @@
         if (activeTab === 'projects') loadProjects();
         if (activeTab === 'expenses') loadExpenses();
         if (activeTab === 'pto') loadPto();
+        if (activeTab === 'purchases') { loadPurchaseRequests(); loadStoreCredentials(); }
       });
     });
 
@@ -1277,6 +1305,208 @@
         listEl.appendChild(card);
       }
     }
+
+    // ── Purchase Requests ─────────────────────────────────────────
+    let allPurchases = [];
+    let prFilterStatus = 'pending';
+    const prListEl = document.getElementById('pr-list');
+
+    document.getElementById('pr-filters').addEventListener('click', e => {
+      const btn = e.target.closest('[data-status]');
+      if (!btn) return;
+      prFilterStatus = btn.dataset.status;
+      document.querySelectorAll('#pr-filters .filter-tab').forEach(b => b.classList.toggle('active', b === btn));
+      renderPurchaseRequests();
+    });
+
+    async function loadPurchaseRequests() {
+      prListEl.innerHTML = '<div class="loading">Loading…</div>';
+      const res = await apiFetch('/api/admin/purchases');
+      if (!res || !res.ok) { prListEl.innerHTML = '<div class="empty-state">Failed to load</div>'; return; }
+      allPurchases = await res.json();
+      renderPurchaseRequests();
+    }
+
+    function renderPurchaseRequests() {
+      const list = prFilterStatus ? allPurchases.filter(p => p.status === prFilterStatus) : allPurchases;
+      if (!list.length) { prListEl.innerHTML = '<div class="empty-state">No requests found</div>'; return; }
+
+      const statusColor = { pending: 'var(--warning)', approved: 'var(--success)', rejected: 'var(--danger)', purchased: '#a78bfa' };
+      prListEl.innerHTML = '';
+
+      list.forEach(p => {
+        const domain = (() => { try { return new URL(p.url).hostname.replace('www.',''); } catch { return p.url; } })();
+        const card = document.createElement('div');
+        card.className = 'admin-card';
+        card.style.marginBottom = '12px';
+        const hasCreds = p.store_login_url || p.store_username || p.store_password;
+        card.innerHTML = `
+          <div class="admin-card-top" style="align-items:flex-start;gap:12px;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+                <span style="font-weight:700;font-size:15px;">${p.store_name || domain}</span>
+                <span style="background:${statusColor[p.status]||'var(--border)'};color:#fff;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;">${p.status}</span>
+              </div>
+              <div style="font-size:13px;color:var(--text-sec);">
+                <strong>${p.requester_name}</strong> · ${p.client_name || 'No project'}
+                ${p.estimated_cost ? ` · <strong style="color:var(--text);">€${parseFloat(p.estimated_cost).toFixed(2)}</strong>` : ''}
+                ${p.actual_cost ? ` · Paid: <strong style="color:var(--success);">€${parseFloat(p.actual_cost).toFixed(2)}</strong>` : ''}
+              </div>
+              ${p.description ? `<div style="font-size:13px;color:var(--text-sec);margin-top:4px;">${p.description}</div>` : ''}
+              <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <a href="${p.url}" target="_blank" rel="noopener" style="color:var(--accent);font-size:13px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                  🔗 Open Product
+                </a>
+                ${hasCreds ? `
+                  <div style="background:var(--surface-hover);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;display:inline-flex;flex-direction:column;gap:4px;">
+                    ${p.store_login_url ? `<a href="${p.store_login_url}" target="_blank" style="color:var(--accent);text-decoration:none;">🔐 Store Login</a>` : ''}
+                    ${p.store_username ? `<div style="display:flex;align-items:center;gap:6px;">👤 <span>${p.store_username}</span> <button onclick="copyText('${p.store_username}')" style="background:none;border:1px solid var(--border);color:var(--text-sec);padding:2px 6px;border-radius:4px;font-size:11px;cursor:pointer;">Copy</button></div>` : ''}
+                    ${p.store_password ? `<div style="display:flex;align-items:center;gap:6px;" id="pw-row-${p.id}">🔑 <span id="pw-val-${p.id}" style="letter-spacing:2px;">••••••••</span> <button onclick="togglePw(${p.id},'${p.store_password}')" style="background:none;border:1px solid var(--border);color:var(--text-sec);padding:2px 6px;border-radius:4px;font-size:11px;cursor:pointer;" id="pw-eye-${p.id}">Show</button> <button onclick="copyText('${p.store_password}')" style="background:none;border:1px solid var(--border);color:var(--text-sec);padding:2px 6px;border-radius:4px;font-size:11px;cursor:pointer;">Copy</button></div>` : ''}
+                  </div>` : ''}
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+              ${p.status === 'pending' ? `<button class="btn-success" style="font-size:13px;padding:6px 14px;" data-id="${p.id}" data-action="approve">✓ Approve</button>` : ''}
+              ${p.status === 'approved' ? `<button class="btn-primary" style="font-size:13px;padding:6px 14px;" data-id="${p.id}" data-action="purchased">🛒 Mark Purchased</button>` : ''}
+              ${p.status !== 'rejected' && p.status !== 'purchased' ? `<button class="btn-danger" style="font-size:13px;padding:6px 14px;" data-id="${p.id}" data-action="reject">✗ Reject</button>` : ''}
+            </div>
+          </div>
+        `;
+        card.querySelectorAll('[data-action]').forEach(btn => {
+          btn.addEventListener('click', () => handlePrAction(p.id, btn.dataset.action));
+        });
+        prListEl.appendChild(card);
+      });
+    }
+
+    async function handlePrAction(id, action) {
+      if (action === 'approve') {
+        const res = await apiFetch(`/api/admin/purchases/${id}`, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
+        if (res && res.ok) { showToast('Approved'); loadPurchaseRequests(); }
+        else showToast('Failed', 'error');
+      } else if (action === 'reject') {
+        if (!confirm('Reject this purchase request?')) return;
+        const res = await apiFetch(`/api/admin/purchases/${id}`, { method: 'PUT', body: JSON.stringify({ status: 'rejected' }) });
+        if (res && res.ok) { showToast('Rejected'); loadPurchaseRequests(); }
+        else showToast('Failed', 'error');
+      } else if (action === 'purchased') {
+        const cost = prompt('Enter actual cost paid (€):');
+        if (cost === null) return;
+        const body = { status: 'purchased' };
+        if (cost.trim()) body.actual_cost = parseFloat(cost);
+        const res = await apiFetch(`/api/admin/purchases/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        if (res && res.ok) { showToast('Marked as purchased'); loadPurchaseRequests(); }
+        else showToast('Failed', 'error');
+      }
+    }
+
+    window.copyText = function(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => showToast('Copy failed', 'error'));
+    };
+    window.togglePw = function(id, pw) {
+      const el = document.getElementById(`pw-val-${id}`);
+      const btn = document.getElementById(`pw-eye-${id}`);
+      if (el.textContent === '••••••••') { el.textContent = pw; btn.textContent = 'Hide'; }
+      else { el.textContent = '••••••••'; btn.textContent = 'Show'; }
+    };
+
+    // ── Store Credentials ──────────────────────────────────────────
+    let allStoreCreds = [];
+    const storeCredsListEl = document.getElementById('store-creds-list');
+
+    async function loadStoreCredentials() {
+      storeCredsListEl.innerHTML = '<div class="loading">Loading…</div>';
+      const res = await apiFetch('/api/admin/store-credentials');
+      if (!res || !res.ok) { storeCredsListEl.innerHTML = '<div class="empty-state">Failed to load</div>'; return; }
+      allStoreCreds = await res.json();
+      renderStoreCredentials();
+    }
+
+    function renderStoreCredentials() {
+      storeCredsListEl.innerHTML = '';
+      allStoreCreds.forEach(s => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;';
+        row.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:15px;">${s.store_name}</div>
+              <div style="font-size:12px;color:var(--text-sec);">${s.domain}</div>
+            </div>
+            <button data-id="${s.id}" data-edit="true" style="background:none;border:1px solid var(--border);color:var(--text-sec);padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;">Edit</button>
+            <button data-id="${s.id}" data-delete="true" style="background:none;border:1px solid var(--danger);color:var(--danger);padding:6px 12px;border-radius:6px;font-size:13px;cursor:pointer;">Delete</button>
+          </div>
+          <div id="edit-form-${s.id}" style="display:none;margin-top:12px;display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+              <input id="sc-name-${s.id}" value="${s.store_name||''}" placeholder="Store Name" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+              <input id="sc-domain-${s.id}" value="${s.domain||''}" placeholder="domain.com" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+              <input id="sc-login-${s.id}" value="${s.login_url||''}" placeholder="Login URL" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+              <input id="sc-user-${s.id}" value="${s.username||''}" placeholder="Username/Email" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+              <input id="sc-pw-${s.id}" value="${s.password||''}" placeholder="Password" type="text" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+            </div>
+            <button data-id="${s.id}" data-save="true" class="btn-primary" style="font-size:13px;padding:8px 16px;">Save</button>
+          </div>
+        `;
+        row.querySelector('[data-edit]').addEventListener('click', () => {
+          const form = document.getElementById(`edit-form-${s.id}`);
+          form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+        row.querySelector('[data-delete]').addEventListener('click', async () => {
+          if (!confirm(`Delete ${s.store_name}?`)) return;
+          const res = await apiFetch(`/api/admin/store-credentials/${s.id}`, { method: 'DELETE' });
+          if (res && res.ok) { showToast('Deleted'); loadStoreCredentials(); }
+          else showToast('Failed', 'error');
+        });
+        row.querySelector('[data-save]').addEventListener('click', async () => {
+          const body = {
+            store_name: document.getElementById(`sc-name-${s.id}`).value,
+            domain: document.getElementById(`sc-domain-${s.id}`).value,
+            login_url: document.getElementById(`sc-login-${s.id}`).value,
+            username: document.getElementById(`sc-user-${s.id}`).value,
+            password: document.getElementById(`sc-pw-${s.id}`).value,
+          };
+          const res = await apiFetch(`/api/admin/store-credentials/${s.id}`, { method: 'PUT', body: JSON.stringify(body) });
+          if (res && res.ok) { showToast('Saved'); loadStoreCredentials(); }
+          else showToast('Failed', 'error');
+        });
+        storeCredsListEl.appendChild(row);
+      });
+
+      // Add new store form
+      const addRow = document.createElement('div');
+      addRow.id = 'new-store-form';
+      addRow.style.cssText = 'display:none;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:14px 16px;margin-top:6px;';
+      addRow.innerHTML = `
+        <div style="font-weight:700;font-size:15px;margin-bottom:12px;">New Store</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input id="ns-name" placeholder="Store Name" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="ns-domain" placeholder="domain.com" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="ns-login" placeholder="Login URL" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="ns-user" placeholder="Username/Email" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+          <input id="ns-pw" placeholder="Password" type="text" style="padding:8px 10px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:14px;">
+        </div>
+        <button id="ns-save-btn" class="btn-primary" style="font-size:13px;padding:8px 16px;">Add Store</button>
+      `;
+      addRow.querySelector('#ns-save-btn').addEventListener('click', async () => {
+        const body = {
+          store_name: document.getElementById('ns-name').value,
+          domain: document.getElementById('ns-domain').value,
+          login_url: document.getElementById('ns-login').value,
+          username: document.getElementById('ns-user').value,
+          password: document.getElementById('ns-pw').value,
+        };
+        if (!body.store_name || !body.domain) { showToast('Name and domain are required', 'error'); return; }
+        const res = await apiFetch('/api/admin/store-credentials', { method: 'POST', body: JSON.stringify(body) });
+        if (res && res.ok) { showToast('Store added'); loadStoreCredentials(); }
+        else showToast('Failed', 'error');
+      });
+      storeCredsListEl.appendChild(addRow);
+    }
+
+    document.getElementById('new-store-btn').addEventListener('click', () => {
+      const form = document.getElementById('new-store-form');
+      if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    });
 
     // ── Boot ──────────────────────────────────────────────────────
     loadOverview();

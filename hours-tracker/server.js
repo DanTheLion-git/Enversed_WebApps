@@ -473,6 +473,163 @@ app.get('/api/admin/reports/hours', requireAdmin, (req, res) => {
   });
 });
 
+// ── Purchase requests ──────────────────────────────────────────────────────────
+
+// Detect store from URL
+function detectStore(url, db) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    const cred = db.prepare('SELECT * FROM store_credentials WHERE ? LIKE \'%\' || domain OR domain = ?').get(host, host)
+                 || db.prepare('SELECT * FROM store_credentials WHERE ? LIKE \'%\' || domain').get(host);
+    if (cred) return { store_domain: cred.domain, store_name: cred.store_name };
+    return { store_domain: host, store_name: host };
+  } catch { return { store_domain: '', store_name: 'Unknown Store' }; }
+}
+
+app.get('/api/purchases/detect-store', requireAuth, (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url query param required' });
+  const db = getDb();
+  const { store_domain, store_name } = detectStore(url, db);
+  let domain;
+  try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch { domain = url; }
+  return res.json({ store_name: store_name !== domain ? store_name : null, domain });
+});
+
+app.get('/api/purchases', requireAuth, (req, res) => {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT pr.*, c.name as client_name, c.color as client_color, u.name as requester_name
+    FROM purchase_requests pr
+    LEFT JOIN clients c ON c.id = pr.client_id
+    JOIN users u ON u.id = pr.user_id
+    WHERE pr.user_id = ?
+    ORDER BY pr.created_at DESC
+  `).all(req.user.id);
+  return res.json(rows);
+});
+
+app.post('/api/purchases', requireAuth, (req, res) => {
+  const { client_id, url, description = '', estimated_cost } = req.body || {};
+  if (!url) return res.status(400).json({ error: 'url is required' });
+
+  let parsedUrl;
+  try { parsedUrl = new URL(url); } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+
+  const db = getDb();
+  if (client_id) {
+    const client = db.prepare('SELECT id FROM clients WHERE id = ? AND active = 1').get(client_id);
+    if (!client) return res.status(400).json({ error: 'Invalid project' });
+  }
+
+  const { store_domain, store_name } = detectStore(url, db);
+  const info = db.prepare(
+    'INSERT INTO purchase_requests (user_id, client_id, url, store_domain, store_name, description, estimated_cost) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run([req.user.id, client_id || null, url, store_domain, store_name, description, estimated_cost || null]);
+
+  const row = db.prepare(`
+    SELECT pr.*, c.name as client_name, c.color as client_color, u.name as requester_name
+    FROM purchase_requests pr
+    LEFT JOIN clients c ON c.id = pr.client_id
+    JOIN users u ON u.id = pr.user_id
+    WHERE pr.id = ?
+  `).get(info.lastInsertRowid);
+  return res.status(201).json(row);
+});
+
+app.delete('/api/purchases/:id', requireAuth, (req, res) => {
+  const db = getDb();
+  const row = db.prepare('SELECT * FROM purchase_requests WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Not found' });
+  if (row.user_id !== req.user.id) return res.status(403).json({ error: 'Forbidden' });
+  if (row.status !== 'pending') return res.status(400).json({ error: 'Can only cancel pending requests' });
+  db.prepare('DELETE FROM purchase_requests WHERE id = ?').run(req.params.id);
+  return res.status(204).send();
+});
+
+// Admin purchase routes
+app.get('/api/admin/purchases', requireAdmin, (req, res) => {
+  const db = getDb();
+  const { status } = req.query;
+  let query = `
+    SELECT pr.*, c.name as client_name, c.color as client_color, u.name as requester_name,
+           sc.login_url as store_login_url, sc.username as store_username, sc.password as store_password
+    FROM purchase_requests pr
+    LEFT JOIN clients c ON c.id = pr.client_id
+    JOIN users u ON u.id = pr.user_id
+    LEFT JOIN store_credentials sc ON sc.domain = pr.store_domain
+  `;
+  const args = [];
+  if (status) { query += ' WHERE pr.status = ?'; args.push(status); }
+  query += ' ORDER BY pr.created_at DESC';
+  return res.json(db.prepare(query).all(args));
+});
+
+app.put('/api/admin/purchases/:id', requireAdmin, (req, res) => {
+  const { status, actual_cost } = req.body || {};
+  if (!['approved', 'rejected', 'purchased'].includes(status)) {
+    return res.status(400).json({ error: 'status must be approved, rejected, or purchased' });
+  }
+  const db = getDb();
+  const row = db.prepare('SELECT * FROM purchase_requests WHERE id = ?').get(req.params.id);
+  if (!row) return res.status(404).json({ error: 'Not found' });
+
+  if (status === 'purchased') {
+    db.prepare(`
+      UPDATE purchase_requests SET status=?, actual_cost=?, reviewed_by=?, reviewed_at=datetime('now'), purchased_at=datetime('now') WHERE id=?
+    `).run([status, actual_cost || null, req.user.id, req.params.id]);
+  } else {
+    db.prepare(`
+      UPDATE purchase_requests SET status=?, reviewed_by=?, reviewed_at=datetime('now') WHERE id=?
+    `).run([status, req.user.id, req.params.id]);
+  }
+
+  const updated = db.prepare(`
+    SELECT pr.*, c.name as client_name, c.color as client_color, u.name as requester_name
+    FROM purchase_requests pr LEFT JOIN clients c ON c.id = pr.client_id JOIN users u ON u.id = pr.user_id WHERE pr.id = ?
+  `).get(req.params.id);
+  return res.json(updated);
+});
+
+// Store credentials (admin)
+app.get('/api/admin/store-credentials', requireAdmin, (req, res) => {
+  return res.json(getDb().prepare('SELECT * FROM store_credentials ORDER BY store_name').all());
+});
+
+app.post('/api/admin/store-credentials', requireAdmin, (req, res) => {
+  const { domain, store_name, login_url, username = '', password = '', notes = '' } = req.body || {};
+  if (!domain || !store_name || !login_url) return res.status(400).json({ error: 'domain, store_name, and login_url are required' });
+  const db = getDb();
+  const info = db.prepare(
+    'INSERT INTO store_credentials (domain, store_name, login_url, username, password, notes) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run([domain, store_name, login_url, username, password, notes]);
+  return res.status(201).json(db.prepare('SELECT * FROM store_credentials WHERE id = ?').get(info.lastInsertRowid));
+});
+
+app.put('/api/admin/store-credentials/:id', requireAdmin, (req, res) => {
+  const { domain, store_name, login_url, username, password, notes } = req.body || {};
+  const db = getDb();
+  const existing = db.prepare('SELECT * FROM store_credentials WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+  db.prepare(`UPDATE store_credentials SET
+    domain=?, store_name=?, login_url=?, username=?, password=?, notes=? WHERE id=?
+  `).run([
+    domain ?? existing.domain, store_name ?? existing.store_name, login_url ?? existing.login_url,
+    username ?? existing.username, password ?? existing.password, notes ?? existing.notes,
+    req.params.id
+  ]);
+  return res.json(db.prepare('SELECT * FROM store_credentials WHERE id = ?').get(req.params.id));
+});
+
+app.delete('/api/admin/store-credentials/:id', requireAdmin, (req, res) => {
+  const db = getDb();
+  if (!db.prepare('SELECT id FROM store_credentials WHERE id = ?').get(req.params.id)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  db.prepare('DELETE FROM store_credentials WHERE id = ?').run(req.params.id);
+  return res.status(204).send();
+});
+
 // ── Start ──────────────────────────────────────────────────────────────────────
 
 getDb();

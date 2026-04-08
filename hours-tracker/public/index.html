@@ -894,6 +894,15 @@
       <div class="pto-list" id="pto-list"></div>
     </div>
 
+    <!-- Tab: Purchases -->
+    <div class="tab-content" id="tab-purchases">
+      <div class="tab-header">
+        <div class="tab-title">Asset Requests</div>
+        <button class="btn-add" id="pr-add-btn">+ Request Purchase</button>
+      </div>
+      <div class="purchase-list" id="purchase-list"><div class="empty-state">Loading…</div></div>
+    </div>
+
     <!-- Bottom nav -->
     <nav class="bottom-nav">
       <button class="nav-tab active" data-tab="calendar" id="nav-calendar">
@@ -913,6 +922,12 @@
           <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/>
         </svg>
         Time Off
+      </button>
+      <button class="nav-tab" data-tab="purchases" id="nav-purchases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Assets
       </button>
     </nav>
   </div>
@@ -1028,6 +1043,37 @@
     </div>
   </div>
 
+  <!-- Request Purchase Sheet -->
+  <div class="bottom-sheet" id="pr-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Request Asset Purchase</div>
+      <button class="sheet-close" id="pr-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label>Project</label>
+        <select id="pr-client-select" style="width:100%;padding:12px 14px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-btn);font-size:15px;font-family:inherit;">
+          <option value="">Select a project…</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Product URL</label>
+        <input type="url" id="pr-url-input" placeholder="https://assetstore.unity.com/packages/…" style="width:100%;padding:12px 14px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-btn);font-size:15px;font-family:inherit;">
+        <div id="pr-store-detected" style="margin-top:8px;font-size:13px;color:var(--text-sec);min-height:20px;"></div>
+      </div>
+      <div class="form-group">
+        <label>Estimated Cost (€, optional)</label>
+        <input type="number" id="pr-cost-input" placeholder="0.00" min="0" step="0.01" style="width:100%;padding:12px 14px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-btn);font-size:15px;font-family:inherit;">
+      </div>
+      <div class="form-group">
+        <label>Additional Notes (optional)</label>
+        <textarea id="pr-notes-input" rows="3" placeholder="Why is this needed? Which sprint/feature?" style="width:100%;padding:12px 14px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-btn);font-size:15px;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+      <button class="btn-submit" id="pr-submit-btn">Submit Request</button>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast"></div>
 
@@ -1112,6 +1158,19 @@
     const ptoNotesInput = document.getElementById('pto-notes-input');
     const ptoSubmitBtn  = document.getElementById('pto-submit-btn');
     const ptoTypeSel    = document.getElementById('pto-type-selector');
+
+    // Purchase refs
+    const prAddBtn      = document.getElementById('pr-add-btn');
+    const prListEl      = document.getElementById('purchase-list');
+    const prSheet       = document.getElementById('pr-sheet');
+    const prSheetClose  = document.getElementById('pr-sheet-close');
+    const prClientSel   = document.getElementById('pr-client-select');
+    const prUrlInput    = document.getElementById('pr-url-input');
+    const prCostInput   = document.getElementById('pr-cost-input');
+    const prNotesInput  = document.getElementById('pr-notes-input');
+    const prSubmitBtn   = document.getElementById('pr-submit-btn');
+    const prStoreDetect = document.getElementById('pr-store-detected');
+    let myPurchases = [];
 
     // ── Utils ─────────────────────────────────────────────────────────────────
     function pad(n) { return String(n).padStart(2, '0'); }
@@ -1237,6 +1296,7 @@
 
       if (tab === 'expenses') loadExpenses();
       if (tab === 'pto') loadPto();
+      if (tab === 'purchases') loadPurchases();
     }
 
     document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -1691,16 +1751,105 @@
       ptoSubmitBtn.textContent = 'Submit Request';
     });
 
+    // ── Purchases ────────────────────────────────────────────────────────────
+    async function loadPurchases() {
+      const res = await apiFetch('/api/purchases');
+      if (!res || !res.ok) return;
+      myPurchases = await res.json();
+      renderPurchases();
+    }
+
+    function renderPurchases() {
+      if (!myPurchases.length) {
+        prListEl.innerHTML = '<div class="empty-state">No purchase requests yet</div>';
+        return;
+      }
+      const statusColor = { pending: 'var(--warning)', approved: 'var(--success)', rejected: 'var(--danger)', purchased: '#a78bfa' };
+      const statusIcon  = { pending: '⏳', approved: '✅', rejected: '❌', purchased: '🛒' };
+      prListEl.innerHTML = myPurchases.map(p => {
+        const domain = (() => { try { return new URL(p.url).hostname.replace('www.',''); } catch { return p.url; } })();
+        const cost = p.estimated_cost ? `€${parseFloat(p.estimated_cost).toFixed(2)}` : '';
+        const canDelete = p.status === 'pending';
+        return `<div class="expense-card" style="gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.client_name || 'Unknown project'}</div>
+              <div style="font-size:12px;color:var(--text-sec);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.store_name || domain}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+              <span style="background:${statusColor[p.status] || 'var(--border)'};color:#fff;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;">${statusIcon[p.status] || ''} ${p.status}</span>
+              ${cost ? `<span style="font-size:13px;font-weight:600;color:var(--text-sec);">${cost}</span>` : ''}
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text-sec);display:flex;align-items:center;gap:6px;">
+            <a href="${p.url}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${domain}</a>
+          </div>
+          ${p.description ? `<div style="font-size:13px;color:var(--text-sec);margin-top:2px;">${p.description}</div>` : ''}
+          ${canDelete ? `<button onclick="deletePurchase(${p.id})" style="margin-top:4px;background:none;border:1px solid var(--danger);color:var(--danger);padding:6px 14px;border-radius:var(--radius-btn);font-size:13px;cursor:pointer;">Cancel Request</button>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    window.deletePurchase = async function(id) {
+      if (!confirm('Cancel this purchase request?')) return;
+      const res = await apiFetch(`/api/purchases/${id}`, { method: 'DELETE' });
+      if (res && res.ok) { showToast('Request cancelled'); loadPurchases(); }
+    };
+
+    function populatePrClientSelect() {
+      prClientSel.innerHTML = '<option value="">Select a project…</option>' +
+        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    let prDetectTimer = null;
+    prUrlInput.addEventListener('input', () => {
+      clearTimeout(prDetectTimer);
+      prDetectTimer = setTimeout(async () => {
+        const url = prUrlInput.value.trim();
+        if (!url) { prStoreDetect.textContent = ''; return; }
+        try {
+          const res = await apiFetch(`/api/purchases/detect-store?url=${encodeURIComponent(url)}`);
+          if (res && res.ok) {
+            const d = await res.json();
+            prStoreDetect.innerHTML = d.store_name
+              ? `<span style="color:var(--success);">✓ Detected: <strong>${d.store_name}</strong></span>`
+              : `<span style="color:var(--text-muted);">Store not in database — will be saved as ${d.domain}</span>`;
+          }
+        } catch { prStoreDetect.textContent = ''; }
+      }, 600);
+    });
+
+    prAddBtn.addEventListener('click', () => {
+      populatePrClientSelect();
+      prUrlInput.value = ''; prCostInput.value = ''; prNotesInput.value = ''; prStoreDetect.textContent = '';
+      openSheet(prSheet, null);
+    });
+    prSheetClose.addEventListener('click', () => closeSheet(prSheet));
+
+    prSubmitBtn.addEventListener('click', async () => {
+      const url = prUrlInput.value.trim();
+      if (!url) { showToast('Please enter a product URL', 'error'); return; }
+      prSubmitBtn.disabled = true;
+      prSubmitBtn.textContent = 'Submitting…';
+      const body = { client_id: prClientSel.value || null, url, description: prNotesInput.value.trim() || null };
+      if (prCostInput.value) body.estimated_cost = parseFloat(prCostInput.value);
+      const res = await apiFetch('/api/purchases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res && res.ok) {
+        closeSheet(prSheet);
+        showToast('Request submitted');
+        await loadPurchases();
+      } else {
+        const err = res ? await res.json() : { error: 'Network error' };
+        showToast(err.error || 'Failed', 'error');
+      }
+      prSubmitBtn.disabled = false;
+      prSubmitBtn.textContent = 'Submit Request';
+    });
+
     // ── Boot ──────────────────────────────────────────────────────────────────
     loadAuth();
     if (auth && auth.token) showApp();
     else showLogin();
-
-  })();
-  </script>
-</body>
-</html>
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
