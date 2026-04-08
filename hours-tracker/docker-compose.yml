@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  hours-tracker:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - hours_data:/data
+    environment:
+      - JWT_SECRET=change-this-in-production
+      - DATABASE_PATH=/data/hours.db
+    restart: unless-stopped
+
+volumes:
+  hours_data:

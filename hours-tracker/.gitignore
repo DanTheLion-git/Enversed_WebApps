@@ -1,0 +1,9 @@
+node_modules/
+hours.db
+hours.db-shm
+hours.db-wal
+hours.db-journal
+hours.db.lock
+*.db
+*.db.lock
+.env

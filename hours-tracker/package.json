@@ -1,0 +1,16 @@
+{
+  "name": "enversed-hours-tracker",
+  "version": "1.0.0",
+  "description": "Mobile-first hours tracking app for Enversed Studios",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-sqlite3-wasm": "^0.8.12",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

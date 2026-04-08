@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0c12">
+  <title>Enversed Hours Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c12;
+      --surface: #13161f;
+      --surface-hover: #1a1f2e;
+      --border: #1e2535;
+      --accent: #448fff;
+      --accent-hover: #6aabff;
+      --accent-glow: rgba(68,143,255,0.25);
+      --text: #ffffff;
+      --text-sec: #8892a4;
+      --text-muted: #4a5568;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-card: 16px;
+      --radius-btn: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Open Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+    input, textarea { font-family: inherit; outline: none; }
+
+    /* ── Login ─────────────────────────────────────────────────── */
+    #login-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 24px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow);
+      padding: 40px 32px 36px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-wordmark {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: var(--text-sec);
+      font-size: 14px;
+      font-weight: 400;
+      margin-bottom: 36px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      color: var(--text);
+      font-size: 16px;
+      padding: 14px 16px;
+      transition: border-color 0.2s;
+      min-height: 48px;
+    }
+
+    .form-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 15px;
+      border-radius: var(--radius-btn);
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      min-height: 52px;
+      margin-top: 24px;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 16px var(--accent-glow); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .error-msg {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px;
+      color: var(--danger);
+      font-size: 14px;
+      padding: 10px 14px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* ── App shell ─────────────────────────────────────────────── */
+    #app-view { display: none; flex-direction: column; min-height: 100dvh; }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,12,18,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 60px;
+    }
+
+    .app-wordmark {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-name {
+      font-size: 13px;
+      color: var(--text-sec);
+      font-weight: 600;
+    }
+
+    .btn-signout {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      transition: color 0.2s, background 0.2s;
+      min-height: 36px;
+    }
+
+    .btn-signout:hover { color: var(--text); background: var(--surface-hover); }
+
+    /* ── Month nav ─────────────────────────────────────────────── */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px 20px;
+    }
+
+    .month-nav-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .month-nav-btn:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+    .month-label {
+      font-size: 18px;
+      font-weight: 700;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    /* ── Calendar ──────────────────────────────────────────────── */
+    .calendar-wrap {
+      padding: 0 16px 100px;
+      flex: 1;
+    }
+
+    .dow-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .dow-header span {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 0;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .day-cell {
+      background: var(--surface);
+      border: 2px solid transparent;
+      border-radius: 12px;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px 6px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .day-cell:active { transform: scale(0.95); }
+
+    .day-cell.other-month {
+      background: transparent;
+      opacity: 0.3;
+    }
+
+    .day-cell.today .day-num {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .day-cell.selected {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+      box-shadow: 0 0 0 1px var(--accent-glow);
+    }
+
+    .day-num {
+      font-size: 14px;
+      font-weight: 600;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .day-dots {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 3px;
+      margin-top: 4px;
+      max-width: 44px;
+    }
+
+    .day-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Floating action bar ───────────────────────────────────── */
+    .fab-bar {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      z-index: 200;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .fab-bar.visible { transform: translateX(-50%) translateY(0); }
+
+    .fab-btn {
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 16px 32px;
+      border-radius: 50px;
+      box-shadow: 0 8px 32px rgba(68,143,255,0.45);
+      white-space: nowrap;
+      min-height: 52px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+
+    .fab-btn:hover { background: var(--accent-hover); }
+    .fab-btn:active { transform: scale(0.96); }
+
+    /* ── Bottom sheet ──────────────────────────────────────────── */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .sheet-overlay.open { opacity: 1; pointer-events: all; }
+
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 301;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--border);
+      padding: 0 0 calc(24px + env(safe-area-inset-bottom));
+      max-height: 92dvh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+    }
+
+    .bottom-sheet.open { transform: translateY(0); }
+
+    .sheet-drag-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 12px auto 0;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .sheet-close {
+      background: var(--surface-hover);
+      color: var(--text-sec);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      line-height: 1;
+    }
+
+    .sheet-close:hover { background: var(--border); color: var(--text); }
+
+    .sheet-body { padding: 20px 20px 8px; }
+
+    /* ── Client grid ───────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .client-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .client-pill {
+      background: var(--surface-hover);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      min-height: 52px;
+    }
+
+    .client-pill:hover { border-color: var(--accent); }
+
+    .client-pill.active {
+      border-color: var(--accent);
+      background: rgba(68,143,255,0.12);
+    }
+
+    .client-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .client-info { flex: 1; min-width: 0; }
+
+    .client-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .client-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* ── Hours picker ──────────────────────────────────────────── */
+    .hours-picker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+      background: var(--surface-hover);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .hours-btn {
+      background: transparent;
+      color: var(--text);
+      font-size: 28px;
+      font-weight: 300;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .hours-btn:hover { background: var(--border); color: var(--accent); }
+    .hours-btn:active { background: rgba(68,143,255,0.15); }
+
+    .hours-display {
+      flex: 1;
+      text-align: center;
+    }
+
+    .hours-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text);
+      display: block;
+      line-height: 1;
+    }
+
+    .hours-unit {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── Notes ─────────────────────────────────────────────────── */
+    .notes-input {
+      width: 100%;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 15px;
+      padding: 14px 16px;
+      resize: none;
+      height: 68px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .notes-input::placeholder { color: var(--text-muted); }
+    .notes-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 16px;
+      border-radius: var(--radius-btn);
+      min-height: 56px;
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    }
+
+    .btn-submit:hover { background: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Day detail sheet ──────────────────────────────────────── */
+    .entry-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .entry-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .entry-info { flex: 1; }
+
+    .entry-client {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .entry-meta {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-top: 2px;
+    }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 18px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover { background: rgba(239,68,68,0.12); color: var(--danger); }
+
+    .btn-add-entry {
+      width: 100%;
+      background: var(--surface-hover);
+      border: 1px dashed var(--border);
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 15px;
+      border-radius: 12px;
+      min-height: 52px;
+      margin-top: 8px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-add-entry:hover { background: var(--border); border-color: var(--accent); }
+
+    /* ── Toast ─────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: calc(100px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      z-index: 9999;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    #toast.success { border-color: var(--success); color: var(--success); }
+    #toast.error   { border-color: var(--danger);  color: var(--danger); }
+
+    /* ── Overlay (body lock) ───────────────────────────────────── */
+    body.sheet-open { overflow: hidden; }
+
+    /* ── Responsive tweaks ─────────────────────────────────────── */
+    @media (min-width: 600px) {
+      .login-card { padding: 48px 40px 44px; }
+      .day-cell { min-height: 72px; }
+      .calendar-wrap { padding: 0 24px 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN VIEW -->
+  <div id="login-view">
+    <div class="login-card">
+      <div class="login-wordmark">ENVERSED</div>
+      <div class="login-subtitle">Hours Tracker</div>
+      <form id="login-form" autocomplete="on">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="email" placeholder="you@enversed.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn-primary" id="login-btn">Sign in</button>
+        <div class="error-msg" id="login-error"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APP VIEW -->
+  <div id="app-view">
+    <header class="app-header">
+      <div class="app-wordmark">ENVERSED</div>
+      <div class="header-right">
+        <span class="user-name" id="user-name-display"></span>
+        <button class="btn-signout" id="signout-btn">Sign out</button>
+      </div>
+    </header>
+
+    <div class="month-nav">
+      <button class="month-nav-btn" id="prev-month" aria-label="Previous month">&#8249;</button>
+      <div class="month-label" id="month-label"></div>
+      <button class="month-nav-btn" id="next-month" aria-label="Next month">&#8250;</button>
+    </div>
+
+    <div class="calendar-wrap">
+      <div class="dow-header">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+  </div>
+
+  <!-- FAB bar -->
+  <div class="fab-bar" id="fab-bar">
+    <button class="fab-btn" id="fab-btn"></button>
+  </div>
+
+  <!-- Sheet overlay -->
+  <div class="sheet-overlay" id="sheet-overlay"></div>
+
+  <!-- Log Hours Sheet -->
+  <div class="bottom-sheet" id="log-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="log-sheet-title">Log Hours</div>
+      <button class="sheet-close" id="log-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="section-label">Client</div>
+      <div class="client-grid" id="client-grid"></div>
+      <div class="section-label">Hours</div>
+      <div class="hours-picker">
+        <button class="hours-btn" id="hours-dec">&#8722;</button>
+        <div class="hours-display">
+          <span class="hours-value" id="hours-value">8</span>
+          <span class="hours-unit">hours</span>
+        </div>
+        <button class="hours-btn" id="hours-inc">&#43;</button>
+      </div>
+      <div class="section-label">Notes (optional)</div>
+      <textarea class="notes-input" id="notes-input" placeholder="Add a note (optional)" rows="2"></textarea>
+      <button class="btn-submit" id="log-submit-btn">Log 8 hours</button>
+    </div>
+  </div>
+
+  <!-- Day Detail Sheet -->
+  <div class="bottom-sheet" id="detail-sheet">
+    <div class="sheet-drag-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title" id="detail-sheet-title"></div>
+      <button class="sheet-close" id="detail-sheet-close">&#215;</button>
+    </div>
+    <div class="sheet-body">
+      <div id="detail-entries-list"></div>
+      <button class="btn-add-entry" id="detail-add-btn">+ Add another entry</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let auth = null;        // { token, user }
+    let clients = [];
+    let entries = [];       // current month entries for this user
+    let currentDate = new Date();
+    let viewYear = currentDate.getFullYear();
+    let viewMonth = currentDate.getMonth(); // 0-indexed
+    let selectedDays = new Set();  // Set of 'YYYY-MM-DD' strings
+    let logHours = 8;
+    let logClientId = null;
+    let detailDate = null;  // 'YYYY-MM-DD' when detail sheet is open
+
+    // ── DOM refs ──────────────────────────────────────────────────────────────
+    const loginView     = document.getElementById('login-view');
+    const appView       = document.getElementById('app-view');
+    const loginForm     = document.getElementById('login-form');
+    const loginError    = document.getElementById('login-error');
+    const loginBtn      = document.getElementById('login-btn');
+    const userNameDisp  = document.getElementById('user-name-display');
+    const signoutBtn    = document.getElementById('signout-btn');
+    const prevMonthBtn  = document.getElementById('prev-month');
+    const nextMonthBtn  = document.getElementById('next-month');
+    const monthLabel    = document.getElementById('month-label');
+    const calGrid       = document.getElementById('calendar-grid');
+    const fabBar        = document.getElementById('fab-bar');
+    const fabBtn        = document.getElementById('fab-btn');
+    const overlay       = document.getElementById('sheet-overlay');
+    const logSheet      = document.getElementById('log-sheet');
+    const logSheetTitle = document.getElementById('log-sheet-title');
+    const logSheetClose = document.getElementById('log-sheet-close');
+    const clientGrid    = document.getElementById('client-grid');
+    const hoursValue    = document.getElementById('hours-value');
+    const hoursDec      = document.getElementById('hours-dec');
+    const hoursInc      = document.getElementById('hours-inc');
+    const notesInput    = document.getElementById('notes-input');
+    const logSubmitBtn  = document.getElementById('log-submit-btn');
+    const detailSheet   = document.getElementById('detail-sheet');
+    const detailTitle   = document.getElementById('detail-sheet-title');
+    const detailClose   = document.getElementById('detail-sheet-close');
+    const detailList    = document.getElementById('detail-entries-list');
+    const detailAddBtn  = document.getElementById('detail-add-btn');
+    const toast         = document.getElementById('toast');
+
+    // ── Utils ─────────────────────────────────────────────────────────────────
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function dateToStr(y, m, d) { return `${y}-${pad(m+1)}-${pad(d)}`; }
+
+    function monthStr() { return `${viewYear}-${pad(viewMonth+1)}`; }
+
+    function formatMonthLabel(y, m) {
+      return new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
+
+    function formatDateLabel(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    async function apiFetch(path, options = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+      if (auth) headers['Authorization'] = `Bearer ${auth.token}`;
+      const res = await fetch(path, { ...options, headers });
+      if (res.status === 401) { signOut(); return null; }
+      return res;
+    }
+
+    function showToast(msg, type = 'success') {
+      toast.textContent = msg;
+      toast.className = `show ${type}`;
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.className = ''; }, 2500);
+    }
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    function loadAuth() {
+      try {
+        const raw = localStorage.getItem('enversed_auth');
+        if (raw) auth = JSON.parse(raw);
+      } catch { auth = null; }
+    }
+
+    function saveAuth(data) {
+      auth = data;
+      localStorage.setItem('enversed_auth', JSON.stringify(data));
+    }
+
+    function signOut() {
+      auth = null;
+      localStorage.removeItem('enversed_auth');
+      showLogin();
+    }
+
+    function showLogin() {
+      loginView.style.display = 'flex';
+      appView.style.display = 'none';
+    }
+
+    function showApp() {
+      loginView.style.display = 'none';
+      appView.style.display = 'flex';
+      userNameDisp.textContent = auth.user.name.split(' ')[0];
+      loadMonthData();
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginError.style.display = 'none';
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in…';
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          loginError.textContent = data.error || 'Login failed';
+          loginError.style.display = 'block';
+        } else {
+          saveAuth(data);
+          showApp();
+        }
+      } catch {
+        loginError.textContent = 'Network error. Please try again.';
+        loginError.style.display = 'block';
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    });
+
+    signoutBtn.addEventListener('click', signOut);
+
+    // ── Month navigation ──────────────────────────────────────────────────────
+    prevMonthBtn.addEventListener('click', () => {
+      viewMonth--;
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      selectedDays.clear();
+      loadMonthData();
+    });
+
+    nextMonthBtn.addEventListener('click', () => {
+      viewMonth++;
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      selectedDays.clear();
+      loadMonthData();
+    });
+
+    // ── Data loading ──────────────────────────────────────────────────────────
+    async function loadMonthData() {
+      monthLabel.textContent = formatMonthLabel(viewYear, viewMonth);
+      updateFab();
+      // Load clients once
+      if (clients.length === 0) {
+        const res = await apiFetch('/api/clients');
+        if (res && res.ok) clients = await res.json();
+      }
+      // Load entries for current month
+      const res = await apiFetch(`/api/entries?month=${monthStr()}`);
+      if (res && res.ok) {
+        entries = await res.json();
+      } else {
+        entries = [];
+      }
+      renderCalendar();
+    }
+
+    // ── Calendar rendering ────────────────────────────────────────────────────
+    function renderCalendar() {
+      calGrid.innerHTML = '';
+
+      const firstDay = new Date(viewYear, viewMonth, 1);
+      // Monday = 0 offset; JS Sunday=0 so shift
+      let startDow = (firstDay.getDay() + 6) % 7; // 0=Mon, 6=Sun
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+      // Build a map: date string → array of entry colors
+      const entryMap = {};
+      for (const e of entries) {
+        if (!entryMap[e.date]) entryMap[e.date] = [];
+        entryMap[e.date].push(e.client_color);
+      }
+
+      const today = new Date();
+      const todayStr = dateToStr(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Previous month filler
+      for (let i = 0; i < startDow; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell other-month';
+        const n = prevDays - startDow + 1 + i;
+        cell.innerHTML = `<span class="day-num">${n}</span>`;
+        calGrid.appendChild(cell);
+      }
+
+      // Current month days
+      for (let d = 1; d <= daysInMonth; d++) {
+        const ds = dateToStr(viewYear, viewMonth, d);
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        if (ds === todayStr) cell.classList.add('today');
+        if (selectedDays.has(ds)) cell.classList.add('selected');
+
+        let dotsHtml = '';
+        if (entryMap[ds]) {
+          dotsHtml = '<div class="day-dots">' +
+            entryMap[ds].slice(0, 6).map(c => `<div class="day-dot" style="background:${c}"></div>`).join('') +
+            '</div>';
+        }
+
+        cell.innerHTML = `<span class="day-num">${d}</span>${dotsHtml}`;
+        cell.addEventListener('click', () => onDayTap(ds));
+        calGrid.appendChild(cell);
+      }
+
+      // Next month filler
+      const total = startDow + daysInMonth;
+      const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (let i = 1; i <= remaining; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell other-month';
+        cell.innerHTML = `<span class="day-num">${i}</span>`;
+        calGrid.appendChild(cell);
+      }
+    }
+
+    function onDayTap(ds) {
+      // Toggle selection
+      if (selectedDays.has(ds)) {
+        selectedDays.delete(ds);
+      } else {
+        selectedDays.add(ds);
+      }
+      // Re-render selection state without full re-render
+      document.querySelectorAll('.day-cell:not(.other-month)').forEach(cell => {
+        const num = parseInt(cell.querySelector('.day-num').textContent);
+        const cellDs = dateToStr(viewYear, viewMonth, num);
+        if (selectedDays.has(cellDs)) cell.classList.add('selected');
+        else cell.classList.remove('selected');
+      });
+      updateFab();
+    }
+
+    function updateFab() {
+      const count = selectedDays.size;
+      if (count === 0) {
+        fabBar.classList.remove('visible');
+      } else {
+        fabBar.classList.add('visible');
+        fabBtn.textContent = count === 1
+          ? `Log hours — ${formatDateLabel([...selectedDays][0])}`
+          : `Log hours — ${count} days`;
+      }
+    }
+
+    fabBtn.addEventListener('click', () => openLogSheet([...selectedDays]));
+
+    // ── Log Sheet ─────────────────────────────────────────────────────────────
+    function openLogSheet(dates) {
+      logClientId = null;
+      logHours = 8;
+      notesInput.value = '';
+      hoursValue.textContent = logHours;
+      updateSubmitBtn();
+
+      if (dates.length === 1) {
+        logSheetTitle.textContent = `Log Hours — ${formatDateLabel(dates[0])}`;
+      } else {
+        logSheetTitle.textContent = `Log Hours — ${dates.length} days`;
+      }
+
+      // Build client grid
+      clientGrid.innerHTML = '';
+      for (const c of clients) {
+        const pill = document.createElement('button');
+        pill.className = 'client-pill';
+        pill.dataset.id = c.id;
+        pill.innerHTML = `
+          <div class="client-dot" style="background:${c.color}"></div>
+          <div class="client-info">
+            <div class="client-name">${c.name}</div>
+            <div class="client-code">${c.code}</div>
+          </div>
+        `;
+        pill.addEventListener('click', () => {
+          logClientId = c.id;
+          document.querySelectorAll('.client-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          updateSubmitBtn();
+        });
+        clientGrid.appendChild(pill);
+      }
+
+      openSheet(logSheet, dates);
+    }
+
+    function updateSubmitBtn() {
+      const h = logHours;
+      logSubmitBtn.textContent = `Log ${h} hour${h !== 1 ? 's' : ''}`;
+      logSubmitBtn.disabled = !logClientId;
+    }
+
+    hoursDec.addEventListener('click', () => {
+      if (logHours > 0.5) { logHours = Math.round((logHours - 0.5) * 10) / 10; hoursValue.textContent = logHours; updateSubmitBtn(); }
+    });
+
+    hoursInc.addEventListener('click', () => {
+      if (logHours < 8) { logHours = Math.round((logHours + 0.5) * 10) / 10; hoursValue.textContent = logHours; updateSubmitBtn(); }
+    });
+
+    logSubmitBtn.addEventListener('click', async () => {
+      const dates = logSheet._dates;
+      if (!logClientId || !dates) return;
+      logSubmitBtn.disabled = true;
+      logSubmitBtn.textContent = 'Saving…';
+
+      const body = {
+        client_id: logClientId,
+        dates: dates,
+        hours: logHours,
+        notes: notesInput.value.trim(),
+      };
+
+      const res = await apiFetch('/api/entries', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+
+      if (res && res.ok) {
+        closeSheet(logSheet);
+        selectedDays.clear();
+        updateFab();
+        showToast(`Logged ${logHours}h for ${dates.length} day${dates.length > 1 ? 's' : ''}`, 'success');
+        await loadMonthData();
+      } else {
+        const err = res ? await res.json() : { error: 'Network error' };
+        showToast(err.error || 'Failed to save', 'error');
+        logSubmitBtn.disabled = false;
+        updateSubmitBtn();
+      }
+    });
+
+    logSheetClose.addEventListener('click', () => closeSheet(logSheet));
+
+    // ── Detail Sheet ──────────────────────────────────────────────────────────
+    function openDetailSheet(ds) {
+      detailDate = ds;
+      detailTitle.textContent = formatDateLabel(ds);
+      renderDetailEntries(ds);
+      openSheet(detailSheet, null);
+    }
+
+    function renderDetailEntries(ds) {
+      const dayEntries = entries.filter(e => e.date === ds);
+      detailList.innerHTML = '';
+      for (const e of dayEntries) {
+        const card = document.createElement('div');
+        card.className = 'entry-card';
+        card.innerHTML = `
+          <div class="entry-dot" style="background:${e.client_color}"></div>
+          <div class="entry-info">
+            <div class="entry-client">${e.client_name}</div>
+            <div class="entry-meta">${e.hours}h${e.notes ? ' · ' + e.notes : ''}</div>
+          </div>
+          <button class="btn-delete" data-id="${e.id}" aria-label="Delete entry">🗑</button>
+        `;
+        card.querySelector('.btn-delete').addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          if (!confirm(`Delete ${e.hours}h logged for ${e.client_name}?`)) return;
+          const res = await apiFetch(`/api/entries/${e.id}`, { method: 'DELETE' });
+          if (res && res.status === 204) {
+            showToast('Entry deleted', 'success');
+            await loadMonthData();
+            const updated = entries.filter(en => en.date === ds);
+            if (updated.length === 0) {
+              closeSheet(detailSheet);
+            } else {
+              renderDetailEntries(ds);
+            }
+          } else {
+            showToast('Failed to delete', 'error');
+          }
+        });
+        detailList.appendChild(card);
+      }
+    }
+
+    detailAddBtn.addEventListener('click', () => {
+      closeSheet(detailSheet);
+      setTimeout(() => openLogSheet([detailDate]), 350);
+    });
+
+    detailClose.addEventListener('click', () => closeSheet(detailSheet));
+
+    // ── Day tap routing ───────────────────────────────────────────────────────
+    // Override onDayTap for detail vs log logic
+    // We want: single tap = toggle selection; FAB opens log sheet
+    // BUT if user taps a day that already has entries AND nothing else is selected → show detail
+    // Actually per spec: tapping toggles selection, FAB = log for selected days.
+    // Provide separate way to view day: we'll detect "tap on a day with entries that's the only selection"
+    // and if it was already selected (i.e. second tap deselects), we treat as "open detail"
+    // Simpler: keep the spec—toggle selection. But let's also detect tap on a day with entries
+    // when no other days are selected → open detail immediately.
+    // Re-define onDayTap:
+    function onDayTapFixed(ds) {
+      const hasEntries = entries.some(e => e.date === ds);
+      const isSelected = selectedDays.has(ds);
+
+      if (!isSelected && hasEntries && selectedDays.size === 0) {
+        // Open detail view directly
+        selectedDays.clear();
+        updateFab();
+        openDetailSheet(ds);
+        return;
+      }
+
+      // Toggle selection
+      if (selectedDays.has(ds)) {
+        selectedDays.delete(ds);
+      } else {
+        selectedDays.add(ds);
+      }
+
+      document.querySelectorAll('.day-cell:not(.other-month)').forEach(cell => {
+        const num = parseInt(cell.querySelector('.day-num').textContent);
+        const cellDs = dateToStr(viewYear, viewMonth, num);
+        if (selectedDays.has(cellDs)) cell.classList.add('selected');
+        else cell.classList.remove('selected');
+      });
+      updateFab();
+    }
+
+    // Patch the calendar render to use the fixed tap handler
+    const origRenderCalendar = renderCalendar;
+    // We'll monkey-patch by replacing onDayTap reference:
+    // (already done above — onDayTapFixed replaces onDayTap inline below)
+
+    // ── Sheet helpers ─────────────────────────────────────────────────────────
+    function openSheet(sheet, dates) {
+      if (sheet === logSheet) sheet._dates = dates;
+      overlay.classList.add('open');
+      sheet.classList.add('open');
+      document.body.classList.add('sheet-open');
+    }
+
+    function closeSheet(sheet) {
+      sheet.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.classList.remove('sheet-open');
+    }
+
+    overlay.addEventListener('click', () => {
+      closeSheet(logSheet);
+      closeSheet(detailSheet);
+    });
+
+    // ── Boot ──────────────────────────────────────────────────────────────────
+    loadAuth();
+    if (auth && auth.token) {
+      showApp();
+    } else {
+      showLogin();
+    }
+
+    // Patch calendar click handler to use onDayTapFixed
+    // Re-define renderCalendar to use onDayTapFixed
+    function renderCalendarPatched() {
+      calGrid.innerHTML = '';
+
+      const firstDay = new Date(viewYear, viewMonth, 1);
+      let startDow = (firstDay.getDay() + 6) % 7;
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+      const entryMap = {};
+      for (const e of entries) {
+        if (!entryMap[e.date]) entryMap[e.date] = [];
+        entryMap[e.date].push(e.client_color);
+      }
+
+      const today = new Date();
+      const todayStr = dateToStr(today.getFullYear(), today.getMonth(), today.getDate());
+
+      for (let i = 0; i < startDow; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell other-month';
+        cell.innerHTML = `<span class="day-num">${prevDays - startDow + 1 + i}</span>`;
+        calGrid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const ds = dateToStr(viewYear, viewMonth, d);
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        if (ds === todayStr) cell.classList.add('today');
+        if (selectedDays.has(ds)) cell.classList.add('selected');
+
+        let dotsHtml = '';
+        if (entryMap[ds]) {
+          dotsHtml = '<div class="day-dots">' +
+            entryMap[ds].slice(0, 6).map(c => `<div class="day-dot" style="background:${c}"></div>`).join('') +
+            '</div>';
+        }
+
+        cell.innerHTML = `<span class="day-num">${d}</span>${dotsHtml}`;
+        cell.addEventListener('click', () => onDayTapFixed(ds));
+        calGrid.appendChild(cell);
+      }
+
+      const total = startDow + daysInMonth;
+      const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (let i = 1; i <= remaining; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell other-month';
+        cell.innerHTML = `<span class="day-num">${i}</span>`;
+        calGrid.appendChild(cell);
+      }
+    }
+
+    // Override the renderCalendar reference used by loadMonthData
+    // by redefining — we do it by shadowing via closure swap
+    // Simply reassign the module-level renderCalendar:
+    // (Since we're in a closure, re-assign to a local that loadMonthData calls)
+    // Easiest fix: just make loadMonthData call renderCalendarPatched directly.
+
+    // Re-declare loadMonthData to use patched render:
+    async function loadMonthDataFinal() {
+      monthLabel.textContent = formatMonthLabel(viewYear, viewMonth);
+      updateFab();
+      if (clients.length === 0) {
+        const res = await apiFetch('/api/clients');
+        if (res && res.ok) clients = await res.json();
+      }
+      const res = await apiFetch(`/api/entries?month=${monthStr()}`);
+      if (res && res.ok) {
+        entries = await res.json();
+      } else {
+        entries = [];
+      }
+      renderCalendarPatched();
+    }
+
+    // Patch showApp and navigation to use loadMonthDataFinal
+    signoutBtn.removeEventListener('click', signOut);
+    signoutBtn.addEventListener('click', signOut);
+
+    prevMonthBtn.onclick = () => {
+      viewMonth--;
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      selectedDays.clear();
+      loadMonthDataFinal();
+    };
+
+    nextMonthBtn.onclick = () => {
+      viewMonth++;
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      selectedDays.clear();
+      loadMonthDataFinal();
+    };
+
+    // Re-wire showApp
+    function showAppFinal() {
+      loginView.style.display = 'none';
+      appView.style.display = 'flex';
+      userNameDisp.textContent = auth.user.name.split(' ')[0];
+      loadMonthDataFinal();
+    }
+
+    // Re-wire login
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      loginError.style.display = 'none';
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in…';
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          loginError.textContent = data.error || 'Login failed';
+          loginError.style.display = 'block';
+        } else {
+          saveAuth(data);
+          showAppFinal();
+        }
+      } catch {
+        loginError.textContent = 'Network error. Please try again.';
+        loginError.style.display = 'block';
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    };
+
+    if (auth && auth.token) {
+      showAppFinal();
+    }
+
+  })();
+  </script>
+</body>
+</html>
